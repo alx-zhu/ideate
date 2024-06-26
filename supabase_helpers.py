@@ -36,9 +36,25 @@ def add_idea(summary: str, description: str, user_id: str = ""):
     if user_id:
         insert["user_id"] = user_id
     try:
-        idea = supabase.table("Ideas").insert(insert).execute()
-        print(idea)
-        return idea
+        response = supabase.table("Ideas").insert(insert).execute()
+        print(response)
+        return response.data[0]
     except Exception as e:
         print(f"Idea creation failed. {e}")
         return None
+
+
+def list_ideas(user_id: str):
+    try:
+        response = (
+            supabase.table("Ideas")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        print(response)
+        return response.data
+    except Exception as e:
+        print(f"Idea listing failed. {e}")
+        return []
