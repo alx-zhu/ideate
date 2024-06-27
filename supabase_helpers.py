@@ -1,7 +1,7 @@
 import streamlit as st
 from supabase import create_client, Client
 
-from constants import IDEAS_TABLE, POSTS_TABLE
+from constants import IDEAS_TABLE, POSTS_TABLE, USERS_TABLE
 
 url: str = st.secrets["SUPABASE_URL"]
 key: str = st.secrets["SUPABASE_KEY"]
@@ -70,7 +70,7 @@ def add_post(idea_id: int):
         print(response)
         return response.data[0]
     except Exception as e:
-        print(f"Idea creation failed. {e}")
+        print(f"Post creation failed. {e}")
         return None
 
 
@@ -78,15 +78,14 @@ def list_posts():
     try:
         response = (
             supabase.table(POSTS_TABLE)
-            .select("Ideas(summary, description, created_at), auth.users(email)")
+            .select(
+                f"{IDEAS_TABLE}(summary, description, created_at), {USERS_TABLE}(first_name, last_name, email)"
+            )
             .order("created_at", desc=True)
             .execute()
         )
         print(response)
         return response.data
     except Exception as e:
-        print(f"Idea listing failed. {e}")
+        print(f"Post listing failed. {e}")
         return []
-
-
-# list_posts()

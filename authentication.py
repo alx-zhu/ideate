@@ -1,5 +1,5 @@
 import streamlit as st
-from supabase_helpers import sign_up_user, login_user, add_idea
+from supabase_helpers import sign_up_user, login_user
 
 
 def authentication_page():
@@ -27,8 +27,11 @@ def authentication_page():
 
     with tabs[1]:
         st.subheader("Sign Up")
-        first_name = st.text_input("First Name", key="first_name")
-        last_name = st.text_input("Last Name", key="last_name")
+        l, r = st.columns(2)
+        with l:
+            first_name = st.text_input("First Name", key="first_name")
+        with r:
+            last_name = st.text_input("Last Name", key="last_name")
         signup_email = st.text_input("Email", key="signup_email")
         signup_password = st.text_input(
             "Password", key="signup_password", type="password"

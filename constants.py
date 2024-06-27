@@ -1,2 +1,3 @@
-IDEAS_TABLE = "Ideas"
-POSTS_TABLE = "Posts"
+IDEAS_TABLE = "ideas"
+POSTS_TABLE = "posts"
+USERS_TABLE = "users"
