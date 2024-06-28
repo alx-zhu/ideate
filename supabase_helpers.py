@@ -63,6 +63,22 @@ def list_ideas(user_id: str):
         return []
 
 
+def update_idea(idea_id: int, new_summary: str, new_description: str):
+    print(idea_id, new_summary, new_description)
+    try:
+        response = (
+            supabase.table(IDEAS_TABLE)
+            .update({"summary": new_summary, "description": new_description})
+            .eq("id", idea_id)
+            .execute()
+        )
+        print(response)
+        return response.data
+    except Exception as e:
+        print(f"Error updating idea {e}.")
+        return None
+
+
 def add_post(idea_id: int):
     insert = {"idea_id": idea_id}
     try:
