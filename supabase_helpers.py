@@ -1,8 +1,6 @@
 import streamlit as st
 from supabase import create_client, Client
-from constants import IDEAS_TABLE, POSTS_TABLE, USERS_TABLE
-from datetime import datetime
-import tzlocal
+from constants import IDEAS_TABLE, POSTS_TABLE, USERS_TABLE, LIKES_TABLE
 
 url: str = st.secrets["SUPABASE_URL"]
 key: str = st.secrets["SUPABASE_KEY"]
@@ -54,7 +52,6 @@ def get_user_info(user_id: str):
             .eq("id", user_id)
             .execute()
         )
-        print(response)
         return response.data[0]
     except Exception as e:
         print(f"User info retrieval failed. {e}")
@@ -70,7 +67,6 @@ def update_user_info(
     bio: str,
     **_,  # Ignore any other arguments
 ):
-    print(user_id, first_name, last_name, email, tagline, bio)
     try:
         response = (
             supabase.table(USERS_TABLE)
@@ -86,7 +82,7 @@ def update_user_info(
             .eq("id", user_id)
             .execute()
         )
-        print(response)
+        # print(response)
         return response.data
     except Exception as e:
         print(f"User info update failed. {e}")
@@ -143,7 +139,6 @@ def list_ideas(user_id: str):
 
 
 def update_idea(idea_id: int, new_summary: str, new_description: str):
-    print(idea_id, new_summary, new_description)
     try:
         response = (
             supabase.table(IDEAS_TABLE)
@@ -215,7 +210,7 @@ def list_user_posts(user_id: str):
 def user_likes_post(user_id: str, post_id: int):
     try:
         response = (
-            supabase.table("likes")
+            supabase.table(LIKES_TABLE)
             .insert(
                 {
                     "user_id": user_id,
@@ -234,7 +229,7 @@ def user_likes_post(user_id: str, post_id: int):
 def user_unlikes_post(user_id: str, post_id: int):
     try:
         response = (
-            supabase.table("likes")
+            supabase.table(LIKES_TABLE)
             .delete()
             .eq("user_id", user_id)
             .eq("post_id", post_id)
@@ -250,7 +245,7 @@ def user_unlikes_post(user_id: str, post_id: int):
 def check_if_user_likes_post(user_id: str, post_id: int):
     try:
         response = (
-            supabase.table("likes")
+            supabase.table(LIKES_TABLE)
             .select("", count="exact")
             .eq("user_id", user_id)
             .eq("post_id", post_id)
@@ -266,7 +261,7 @@ def check_if_user_likes_post(user_id: str, post_id: int):
 def count_post_likes(post_id: int):
     try:
         response = (
-            supabase.table("likes")
+            supabase.table(LIKES_TABLE)
             .select("", count="exact")
             .eq("post_id", post_id)
             .execute()
@@ -281,7 +276,7 @@ def count_post_likes(post_id: int):
 def count_user_likes(user_id: str):
     try:
         response = (
-            supabase.table("likes")
+            supabase.table(LIKES_TABLE)
             .select("", count="exact")
             .eq("user_id", user_id)
             .execute()

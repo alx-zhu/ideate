@@ -1,5 +1,6 @@
 IDEAS_TABLE = "ideas"
 POSTS_TABLE = "posts"
 USERS_TABLE = "users"
+LIKES_TABLE = "likes"
 SUMMARY_MAX = 100
 DESCRIPTION_MAX = 500

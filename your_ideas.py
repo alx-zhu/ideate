@@ -85,21 +85,12 @@ def ideation_page():
         st.session_state.ideas = list_ideas(st.session_state.user_id)
         for idea in st.session_state.ideas:
             idea["edit_mode"] = False
-
-    with st.sidebar:
-        if st.button("Logout"):
-            st.session_state.user_id = ""
-            st.rerun()
-        if st.button("Feed"):
-            st.session_state.feed = True
-            st.rerun()
     
     # Display all ideas
-    st.header("Your Ideas")
     if st.button("Add Idea", use_container_width=True, type="primary"):
         new_idea_dialog()
 
-    st.divider()
+    # st.divider()
     if st.session_state.ideas:
         for i, idea in enumerate(st.session_state.ideas):
             if idea["edit_mode"]:
