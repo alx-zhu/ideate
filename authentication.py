@@ -19,6 +19,9 @@ def authentication_page():
             if user := login_user(login_email, login_password):
                 st.success(f"Successfully logged in.")
                 st.session_state.user_id = user.user.id
+
+                # Set streak
+
                 st.rerun()
             else:
                 st.error(

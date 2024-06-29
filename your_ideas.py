@@ -2,6 +2,9 @@ import streamlit as st
 from supabase_helpers import list_ideas, add_idea, add_post, update_idea
 from constants import SUMMARY_MAX, DESCRIPTION_MAX
 
+################################################################################
+################################# EDIT HELPERS #################################
+################################################################################
 
 # Function to enable edit mode
 def enable_edit_mode(index):
@@ -23,6 +26,9 @@ def save_idea(index, new_summary, new_description):
     else:
         st.error(f"Idea {index + 1} failed to be updated.")
 
+################################################################################
+################################### DIALOGS ####################################
+################################################################################
 
 @st.experimental_dialog("Are you sure you want to delete this idea?")
 def delete_dialog(index):
@@ -68,7 +74,10 @@ def share_idea_dialog(idea):
             st.error("Failed to share post.")
     if st.button("Cancel", key="cancel_share", use_container_width=True):
         st.rerun()
-    
+
+################################################################################
+################################ IDEATION PAGE #################################
+################################################################################
 
 def ideation_page():
     # Initialize session state to store ideas
@@ -84,12 +93,6 @@ def ideation_page():
         if st.button("Feed"):
             st.session_state.feed = True
             st.rerun()
-
-    # Page title
-    st.title("IDEATE")
-    with st.expander("What if I don't have an idea"):
-        st.subheader("No ideas? No problem!")
-        st.write("Finding ideas to work on starts with a problem you want to solve.")
     
     # Display all ideas
     st.header("Your Ideas")
