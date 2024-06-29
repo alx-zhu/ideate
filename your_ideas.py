@@ -42,7 +42,7 @@ def delete_dialog(index):
 
 @st.experimental_dialog("Add New Idea")
 def new_idea_dialog():
-    with st.form(key="idea_form", clear_on_submit=True):
+    with st.form(key="idea_form"):
         summary = st.text_input("Idea one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your idea:", max_chars=DESCRIPTION_MAX)
         submit_button = st.form_submit_button(label="Submit")

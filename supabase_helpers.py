@@ -8,6 +8,10 @@ url: str = st.secrets["SUPABASE_URL"]
 key: str = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
+################################################################################
+############################### AUTHENTICATION #################################
+################################################################################
+
 
 def sign_up_user(email, password, first_name, last_name):
     try:
@@ -33,6 +37,80 @@ def login_user(email, password):
     except Exception as e:
         print(f"Sign In Failed. {e}")
         return None
+
+
+################################################################################
+#################################### USER ######################################
+################################################################################
+
+
+def get_user_info(user_id: str):
+    try:
+        response = (
+            supabase.table(USERS_TABLE)
+            .select(
+                "first_name, last_name, email, tagline, bio, streak, last_idea_timestamp"
+            )
+            .eq("id", user_id)
+            .execute()
+        )
+        print(response)
+        return response.data[0]
+    except Exception as e:
+        print(f"User info retrieval failed. {e}")
+        return None
+
+
+def update_user_info(
+    user_id: str,
+    first_name: str,
+    last_name: str,
+    email: str,
+    tagline: str,
+    bio: str,
+    **_,  # Ignore any other arguments
+):
+    print(user_id, first_name, last_name, email, tagline, bio)
+    try:
+        response = (
+            supabase.table(USERS_TABLE)
+            .update(
+                {
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                    "tagline": tagline,
+                    "bio": bio,
+                }
+            )
+            .eq("id", user_id)
+            .execute()
+        )
+        print(response)
+        return response.data
+    except Exception as e:
+        print(f"User info update failed. {e}")
+        return None
+
+
+def update_user_last_idea_timestamp(user_id: str, timestamp: str):
+    try:
+        response = (
+            supabase.table(USERS_TABLE)
+            .update({"last_idea_timestamp": timestamp})
+            .eq("id", user_id)
+            .execute()
+        )
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"User last login update failed. {e}")
+        return None
+
+
+################################################################################
+################################### IDEAS ######################################
+################################################################################
 
 
 def add_idea(summary: str, description: str, user_id: str = ""):
@@ -80,6 +158,11 @@ def update_idea(idea_id: int, new_summary: str, new_description: str):
         return None
 
 
+################################################################################
+################################### POSTS ######################################
+################################################################################
+
+
 def add_post(idea_id: int):
     insert = {"idea_id": idea_id}
     try:
@@ -122,6 +205,11 @@ def list_user_posts(user_id: str):
     except Exception as e:
         print(f"Post listing failed. {e}")
         return []
+
+
+################################################################################
+################################### LIKES ######################################
+################################################################################
 
 
 def user_likes_post(user_id: str, post_id: int):
@@ -188,6 +276,20 @@ def count_post_likes(post_id: int):
     except Exception as e:
         print(f"Could not get like count. {e}")
         return 0
+
+
+def count_user_likes(user_id: str):
+    try:
+        response = (
+            supabase.table("likes")
+            .select("", count="exact")
+            .eq("user_id", user_id)
+            .execute()
+        )
+        # print(response)
+        return response.count
+    except Exception as e:
+        print(f"Could not get like count. {e}")
 
 
 # def update_login_timestamp(user_id: str):
