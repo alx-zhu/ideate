@@ -1,20 +1,22 @@
 import streamlit as st
 from your_ideas import ideation_page
 from feed import feed_page
+from your_posts import posts_page
 
 
 def home_page():
-    [profile_page, ideas_page, posts_page, feed_page] = st.tabs(
+    st.title("Ideate")
+    [your_profile_page, your_ideas_page, your_posts_page, your_feed_page] = st.tabs(
         ["Profile", "Your Ideas", "Your Posts", "Feed"]
     )
-    with profile_page:
+    with your_profile_page:
         st.write("Profile")
 
-    with ideas_page:
+    with your_ideas_page:
         ideation_page()
 
-    with posts_page:
-        st.write("Posts")
+    with your_posts_page:
+        posts_page()
 
-    with feed_page:
+    with your_feed_page:
         feed_page()

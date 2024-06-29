@@ -112,9 +112,7 @@ def list_user_posts(user_id: str):
     try:
         response = (
             supabase.table(POSTS_TABLE)
-            .select(
-                f"id, like_count, {IDEAS_TABLE}(summary, description, created_at), {USERS_TABLE}!posts_user_id_fkey(first_name, last_name, email)"
-            )
+            .select(f"id, like_count, {IDEAS_TABLE}(summary, description, created_at)")
             .eq("user_id", user_id)
             .order("created_at", desc=True)
             .execute()

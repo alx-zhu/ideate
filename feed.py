@@ -26,14 +26,14 @@ def feed_page():
         if post["has_liked"]:
             if st.button(f":heart: {post["like_count"]}", key=f"unlike_{i}", type="primary"):
                 user_unlikes_post(st.session_state.user_id, post["id"])
-                st.session_state.posts["like_count"] -= 1
+                st.session_state.posts[i]["like_count"] -= 1
                 st.session_state.posts[i]["has_liked"] = False
-                # st.rerun()
+                st.rerun()
         else:
             if st.button(f":heart: {post["like_count"]}", key=f"like_{i}"):
                 user_likes_post(st.session_state.user_id, post["id"])
                 st.session_state.posts[i]["like_count"] += 1
                 st.session_state.posts[i]["has_liked"] = True
-                # st.rerun()
+                st.rerun()
         st.divider()
     

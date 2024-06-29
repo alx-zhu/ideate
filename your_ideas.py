@@ -125,7 +125,6 @@ def ideation_page():
                         st.button("Edit", on_click=enable_edit_mode, args=(i,), key=f"edit_{i}", use_container_width=True)
                         # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
                         #     delete_dialog(i)
-                        
             st.divider()                          
                             
     else:
