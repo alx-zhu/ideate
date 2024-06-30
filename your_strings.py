@@ -1,18 +1,11 @@
 import streamlit as st
 
 from constants import DESCRIPTION_MAX, IDEAS_TABLE, SUMMARY_MAX
-from supabase_helpers import (
-    add_ideas_to_string,
-    add_string,
-    list_ideas_in_string,
-    list_user_strings,
-    remove_ideas_from_string,
-    update_string,
-)
 
 
-@st.experimental_dialog("Edit String")
+@st.experimental_dialog("Edit String", width="large")
 def edit_string_dialog(string):
+    supabase = st.session_state.supabase
     with st.form(key="edit_string_form"):
         summary = st.text_input(
             "String one-liner", string["summary"], max_chars=SUMMARY_MAX
@@ -24,7 +17,7 @@ def edit_string_dialog(string):
 
     if submit_button:
         if summary and description:
-            if update_string(string["id"], summary, description):
+            if supabase.update_string(string["id"], summary, description):
                 string["summary"] = summary
                 string["description"] = description
                 st.success("Your string has been updated!")
@@ -35,10 +28,11 @@ def edit_string_dialog(string):
             st.error("Please make sure all fields are filled out.")
 
 
-@st.experimental_dialog("Attach String")
+@st.experimental_dialog("Attach String", width="large")
 def attach_string_dialog(string):
+    supabase = st.session_state.supabase
     idea_ids_in_string = set([idea["id"] for idea in string[IDEAS_TABLE]])
-    with st.form(key="attach_string_form"):
+    with st.form(key="attach_string_form", border=0):
         to_remove = []
         with st.expander("Detach Ideas from this String"):
             for idea in string[IDEAS_TABLE]:
@@ -63,7 +57,7 @@ def attach_string_dialog(string):
 
     if submit_button:
         if to_add_pairs:
-            if add_ideas_to_string(
+            if supabase.add_ideas_to_string(
                 string["id"], [idea_id for (idea_id, _) in to_add_pairs]
             ):
                 st.success("Ideas attached successfully")
@@ -75,7 +69,7 @@ def attach_string_dialog(string):
                 )
 
         if to_remove:
-            if remove_ideas_from_string(string["id"], to_remove):
+            if supabase.remove_ideas_from_string(string["id"], to_remove):
                 st.success("Ideas detached successfully")
                 to_remove = set(to_remove)
                 string[IDEAS_TABLE] = [
@@ -86,8 +80,9 @@ def attach_string_dialog(string):
         st.rerun()
 
 
-@st.experimental_dialog("Add New String")
+@st.experimental_dialog("Add New String", width="large")
 def new_string_dialog():
+    supabase = st.session_state.supabase
     to_add_pairs = []
     with st.form(key="string_form"):
         summary = st.text_input("String one-liner", max_chars=SUMMARY_MAX)
@@ -101,15 +96,14 @@ def new_string_dialog():
     # Add the new string to the session state
     if submit_button:
         if summary and description:
-            if string := add_string(summary, description):
-                st.session_state.strings = [string] + st.session_state.strings
+            if string := supabase.add_string(summary, description):
                 st.success("Your string has been added!")
-                if add_ideas_to_string(
+                st.session_state.strings = [string] + st.session_state.strings
+                if supabase.add_ideas_to_string(
                     string["id"], [idea_id for (idea_id, _) in to_add_pairs]
                 ):
                     st.success("Ideas attached successfully!")
-                    for _, idea in to_add_pairs:
-                        string[IDEAS_TABLE].append(idea)
+                    string["ideas"] = [idea for _, idea in to_add_pairs]
                 else:
                     st.error("Error. Ideas could not be attached.")
                 st.rerun()
@@ -120,15 +114,17 @@ def new_string_dialog():
 
 
 def strings_page():
+    supabase = st.session_state.supabase
     if "strings" not in st.session_state:
-        st.session_state.strings = list_user_strings(st.session_state.user_id)
+        st.session_state.strings = supabase.list_user_strings(st.session_state.user_id)
         for string in st.session_state.strings:
-            string[IDEAS_TABLE] = list_ideas_in_string(string["id"])
+            string[IDEAS_TABLE] = supabase.list_ideas_in_string(string["id"])
 
     if st.button(
         "New String", key="new_string_button", type="primary", use_container_width=True
     ):
         new_string_dialog()
+
     for i, string in enumerate(st.session_state.strings):
         l, r = st.columns((5, 1))
         with l:
@@ -138,7 +134,7 @@ def strings_page():
         with r:
             with st.expander("Options"):
                 if st.button("Edit", key=f"edit_string_{i}", use_container_width=True):
-                    edit_string_dialog(i, string)
+                    edit_string_dialog(string)
                 # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
                 #     delete_dialog(i)
         for idea in string[IDEAS_TABLE]:
@@ -147,7 +143,7 @@ def strings_page():
                 st.markdown(f"*{idea['description']}*")
                 st.markdown(f"*Created: {idea['created_at']}*")
         if st.button(
-            "Attach/Detach Ideas", key=f"attach_{i}", use_container_width=True
+            "Attach/Detach Ideas", key=f"attach_string_{i}", use_container_width=True
         ):
             attach_string_dialog(string)
 

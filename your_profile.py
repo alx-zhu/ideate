@@ -1,11 +1,11 @@
 import streamlit as st
-from supabase_helpers import count_user_likes, update_user_info
 from constants import SUMMARY_MAX, DESCRIPTION_MAX
 
 
 def save_profile(info):
+    supabase = st.session_state.supabase
     st.session_state.user_info = info
-    if update_user_info(user_id=st.session_state.user_id, **info):
+    if supabase.update_user_info(user_id=st.session_state.user_id, **info):
         st.success("Profile updated successfully")
     else:
         st.error("Profile update failed")
@@ -33,12 +33,13 @@ def edit_profile_dialog(info):
 
 
 def profile_page():
+    supabase = st.session_state.supabase
     if "user_id" not in st.session_state:
         st.error("User not logged in")
         return
 
     info = st.session_state.user_info
-    total_likes = count_user_likes(st.session_state.user_id)
+    total_likes = supabase.count_user_likes(st.session_state.user_id)
     # with st.container(border=True):
     l, r = st.columns((8, 1))
     with l:

@@ -3,28 +3,20 @@ from about import about_page
 from feed import feed_page
 from home import home_page
 from authentication import authentication_page
-from supabase_helpers import get_current_user
+from supabase_client import SupabaseClient
+
 
 if __name__ == "__main__":
-    user, error = get_current_user()
-    if user:
-        if "page" not in st.session_state or st.session_state.page == "Login/Sign Up":
-            st.session_state.page = "About"
+    if "supabase" not in st.session_state:
+        st.session_state.supabase = SupabaseClient()
 
-        if st.session_state.page == "About":
-            about_page()
-        elif st.session_state.page == "Your Ideas":
-            home_page()
-        elif st.session_state.page == "Feed":
-            feed_page()
+    supabase = st.session_state.supabase
+    if "page" not in st.session_state:
+        st.session_state.page = "Login/Sign Up"
+    if "user_id" in st.session_state and st.session_state.user_id:
+        home_page()
 
         with st.sidebar:
-            st.selectbox(
-                "Navigation",
-                ["About", "Your Ideas", "Feed"],
-                key="page",
-                index=0,
-            )
             st.link_button(
                 "Give me feedback!",
                 url="https://forms.gle/hYUzS95dmxY51nXN8",
@@ -39,8 +31,6 @@ if __name__ == "__main__":
                 st.rerun()
 
     else:
-        if error:
-            st.error("An error occured or your session expired. Please log in again.")
         with st.sidebar:
             st.selectbox(
                 "Navigation",

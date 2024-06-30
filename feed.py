@@ -1,36 +1,28 @@
 import streamlit as st
-from supabase_helpers import (
-    get_current_user,
-    list_posts,
-    user_likes_post,
-    user_unlikes_post,
-    check_if_user_likes_post,
-)
 from constants import IDEAS_TABLE, USERS_TABLE
 
 
 def like_post(i, post):
-    user_likes_post(st.session_state.user_id, post["id"])
+    supabase = st.session_state.supabase
+    supabase.user_likes_post(st.session_state.user_id, post["id"])
     st.session_state.posts[i]["like_count"] += 1
     st.session_state.posts[i]["has_liked"] = True
 
 
 def unlike_post(i, post):
-    user_unlikes_post(st.session_state.user_id, post["id"])
+    supabase = st.session_state.supabase
+    supabase.user_unlikes_post(st.session_state.user_id, post["id"])
     st.session_state.posts[i]["like_count"] -= 1
     st.session_state.posts[i]["has_liked"] = False
 
 
 def feed_page():
-    _, error = get_current_user()
-    if error:
-        st.error("An error occured or your session expired. Please log in again.")
-        return
+    supabase = st.session_state.supabase
     st.title("Feed")
     st.divider()
-    st.session_state.posts = list_posts()
+    st.session_state.posts = supabase.list_posts()
     for post in st.session_state.posts:
-        post["has_liked"] = check_if_user_likes_post(
+        post["has_liked"] = supabase.check_if_user_likes_post(
             st.session_state.user_id, post["id"]
         )
 

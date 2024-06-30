@@ -1,5 +1,4 @@
 import streamlit as st
-from supabase_helpers import list_ideas, add_idea, add_post, update_idea
 from constants import SUMMARY_MAX, DESCRIPTION_MAX
 
 ################################################################################
@@ -19,7 +18,10 @@ def disable_edit_mode(index):
 
 # Function to save the edited idea
 def save_idea(index, new_summary, new_description):
-    if update_idea(st.session_state.ideas[index]["id"], new_summary, new_description):
+    supabase = st.session_state.supabase
+    if supabase.update_idea(
+        st.session_state.ideas[index]["id"], new_summary, new_description
+    ):
         st.session_state.ideas[index]["summary"] = new_summary
         st.session_state.ideas[index]["description"] = new_description
         disable_edit_mode(index)
@@ -50,6 +52,7 @@ def delete_dialog(index):
 
 @st.experimental_dialog("Add New Idea")
 def new_idea_dialog():
+    supabase = st.session_state.supabase
     with st.form(key="idea_form"):
         summary = st.text_input("Idea one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your idea:", max_chars=DESCRIPTION_MAX)
@@ -58,7 +61,7 @@ def new_idea_dialog():
     # Add the new idea to the session state
     if submit_button:
         if summary and description:
-            if idea := add_idea(summary, description):
+            if idea := supabase.add_idea(summary, description):
                 idea["edit_mode"] = False
                 st.session_state.ideas = [idea] + st.session_state.ideas
                 st.success("Your idea has been added!")
@@ -71,6 +74,7 @@ def new_idea_dialog():
 
 @st.experimental_dialog("Share Idea")
 def share_idea_dialog(idea):
+    supabase = st.session_state.supabase
     st.markdown(f"#### {idea['summary']}")
     st.markdown(f"*{idea['description']}*")
     st.divider()
@@ -81,7 +85,7 @@ def share_idea_dialog(idea):
         type="primary",
         disabled=idea["is_posted"],
     ):
-        if add_post(idea["id"]):
+        if supabase.add_post(idea["id"]):
             idea["is_posted"] = True
             st.success("Post shared!")
             st.rerun()
@@ -97,9 +101,11 @@ def share_idea_dialog(idea):
 
 
 def ideation_page():
+    supabase = st.session_state.supabase
+
     # Initialize session state to store ideas
     if "ideas" not in st.session_state:
-        st.session_state.ideas = list_ideas(st.session_state.user_id)
+        st.session_state.ideas = supabase.list_ideas(st.session_state.user_id)
         for idea in st.session_state.ideas:
             idea["edit_mode"] = False
 
