@@ -6,6 +6,7 @@ from constants import SUMMARY_MAX, DESCRIPTION_MAX
 ################################# EDIT HELPERS #################################
 ################################################################################
 
+
 # Function to enable edit mode
 def enable_edit_mode(index):
     st.session_state.ideas[index]["edit_mode"] = True
@@ -26,14 +27,21 @@ def save_idea(index, new_summary, new_description):
     else:
         st.error(f"Idea {index + 1} failed to be updated.")
 
+
 ################################################################################
 ################################### DIALOGS ####################################
 ################################################################################
 
+
 @st.experimental_dialog("Are you sure you want to delete this idea?")
 def delete_dialog(index):
     st.markdown(f'### "{st.session_state.ideas[index]["summary"]}"')
-    if st.button("Confirm", key=f"confirm_delete_{index}", use_container_width=True, type="primary"):
+    if st.button(
+        "Confirm",
+        key=f"confirm_delete_{index}",
+        use_container_width=True,
+        type="primary",
+    ):
         del st.session_state.ideas[index]
         st.rerun()
     if st.button("Cancel", key=f"cancel_delete_{index}", use_container_width=True):
@@ -60,12 +68,19 @@ def new_idea_dialog():
         else:
             st.error("Please make sure all fields are filled out.")
 
+
 @st.experimental_dialog("Share Idea")
 def share_idea_dialog(idea):
-    st.markdown(f"#### {idea["summary"]}")
-    st.markdown(f"*{idea["description"]}*")
+    st.markdown(f"#### {idea['summary']}")
+    st.markdown(f"*{idea['description']}*")
     st.divider()
-    if st.button("Posted" if idea["is_posted"] else "Confirm", key="confirm_share", use_container_width=True, type="primary", disabled=idea["is_posted"]):
+    if st.button(
+        "Posted" if idea["is_posted"] else "Confirm",
+        key="confirm_share",
+        use_container_width=True,
+        type="primary",
+        disabled=idea["is_posted"],
+    ):
         if add_post(idea["id"]):
             idea["is_posted"] = True
             st.success("Post shared!")
@@ -75,9 +90,11 @@ def share_idea_dialog(idea):
     if st.button("Cancel", key="cancel_share", use_container_width=True):
         st.rerun()
 
+
 ################################################################################
 ################################ IDEATION PAGE #################################
 ################################################################################
+
 
 def ideation_page():
     # Initialize session state to store ideas
@@ -85,7 +102,7 @@ def ideation_page():
         st.session_state.ideas = list_ideas(st.session_state.user_id)
         for idea in st.session_state.ideas:
             idea["edit_mode"] = False
-    
+
     # Display all ideas
     if st.button("Add Idea", use_container_width=True, type="primary"):
         new_idea_dialog()
@@ -94,29 +111,61 @@ def ideation_page():
     if st.session_state.ideas:
         for i, idea in enumerate(st.session_state.ideas):
             if idea["edit_mode"]:
-                new_summary = st.text_input(f"Edit summary", value=idea["summary"], key=f"edit_{i}_sum", max_chars=SUMMARY_MAX)
-                new_description = st.text_area(f"Edit description", value=idea["description"], key=f"edit_{i}_desc", max_chars=DESCRIPTION_MAX)
+                new_summary = st.text_input(
+                    f"Edit summary",
+                    value=idea["summary"],
+                    key=f"edit_{i}_sum",
+                    max_chars=SUMMARY_MAX,
+                )
+                new_description = st.text_area(
+                    f"Edit description",
+                    value=idea["description"],
+                    key=f"edit_{i}_desc",
+                    max_chars=DESCRIPTION_MAX,
+                )
                 l, r = st.columns(2)
                 with l:
-                    st.button("Save", on_click=save_idea, args=(i, new_summary, new_description), key=f"save_{i}", use_container_width=True, type="primary")
+                    st.button(
+                        "Save",
+                        on_click=save_idea,
+                        args=(i, new_summary, new_description),
+                        key=f"save_{i}",
+                        use_container_width=True,
+                        type="primary",
+                    )
                 with r:
                     st.button(
-                        "Cancel", on_click=disable_edit_mode, args=(i,), key=f"cancel_{i}", use_container_width=True
+                        "Cancel",
+                        on_click=disable_edit_mode,
+                        args=(i,),
+                        key=f"cancel_{i}",
+                        use_container_width=True,
                     )
             else:
                 l, r = st.columns((5, 1))
                 with l:
-                    st.markdown(f"#### {idea["summary"]}")
-                    st.markdown(f"*{idea["description"]}*")
-                    st.markdown(f"*Created: {idea["created_at"]}*")
+                    st.markdown(f"#### {idea['summary']}")
+                    st.markdown(f"*{idea['description']}*")
+                    st.markdown(f"*Created: {idea['created_at']}*")
                 with r:
-                    if st.button("Shared!" if idea["is_posted"] else "Share", key=f"share_{i}", use_container_width=True, disabled=idea["is_posted"]):
-                            share_idea_dialog(idea)
+                    if st.button(
+                        "Shared!" if idea["is_posted"] else "Share",
+                        key=f"share_{i}",
+                        use_container_width=True,
+                        disabled=idea["is_posted"],
+                    ):
+                        share_idea_dialog(idea)
                     with st.expander("Options"):
-                        st.button("Edit", on_click=enable_edit_mode, args=(i,), key=f"edit_{i}", use_container_width=True)
+                        st.button(
+                            "Edit",
+                            on_click=enable_edit_mode,
+                            args=(i,),
+                            key=f"edit_{i}",
+                            use_container_width=True,
+                        )
                         # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
                         #     delete_dialog(i)
-            st.divider()                          
-                            
+            st.divider()
+
     else:
         st.write("No ideas yet. Start adding your ideas!")
