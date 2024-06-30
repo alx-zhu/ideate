@@ -1,6 +1,14 @@
+from typing import Dict, List
 import streamlit as st
 from supabase import create_client, Client
-from constants import IDEAS_TABLE, POSTS_TABLE, USERS_TABLE, LIKES_TABLE
+from constants import (
+    IDEAS_STRINGS_TABLE,
+    IDEAS_TABLE,
+    POSTS_TABLE,
+    STRINGS_TABLE,
+    USERS_TABLE,
+    LIKES_TABLE,
+)
 
 url: str = st.secrets["SUPABASE_URL"]
 key: str = st.secrets["SUPABASE_KEY"]
@@ -28,13 +36,29 @@ def sign_up_user(email, password, first_name, last_name):
 
 def login_user(email, password):
     try:
-        user = supabase.auth.sign_in_with_password(
+        response = supabase.auth.sign_in_with_password(
             {"email": email, "password": password}
         )
-        return user
+        st.session_state.access_token = response.session.access_token
+        return response.user
     except Exception as e:
         print(f"Sign In Failed. {e}")
         return None
+
+
+def get_current_user():
+    if "access_token" not in st.session_state:
+        print("Not authenticated")
+        return None, None
+
+    try:
+        # This will use the stored access token to get the user
+        user = supabase.auth.get_user(st.session_state.access_token)
+        print(user.user)
+        return user.user, None
+    except Exception as e:
+        print(f"Failed to get user: {e}")
+        return None, e
 
 
 ################################################################################
@@ -43,11 +67,12 @@ def login_user(email, password):
 
 
 def get_user_info(user_id: str):
+    print(f"Getting user info for {user_id}")
     try:
         response = (
             supabase.table(USERS_TABLE)
             .select(
-                "first_name, last_name, email, tagline, bio, streak, last_idea_timestamp"
+                "first_name, last_name, email, tagline, bio, streak, best_streak, last_idea_timestamp"
             )
             .eq("id", user_id)
             .execute()
@@ -285,6 +310,131 @@ def count_user_likes(user_id: str):
         return response.count
     except Exception as e:
         print(f"Could not get like count. {e}")
+
+
+################################################################################
+################################## STRINGS #####################################
+################################################################################
+
+
+def add_string(summary: str, description: str):
+    insert = {"summary": summary, "description": description}
+    try:
+        response = supabase.table(STRINGS_TABLE).insert(insert).execute()
+        # print(response)
+        return response.data[0]
+    except Exception as e:
+        print(f"String creation failed. {e}")
+        return None
+
+
+def list_user_strings(user_id: str):
+    try:
+        response = (
+            supabase.table(STRINGS_TABLE)
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"String listing failed. {e}")
+        return []
+
+
+def list_ideas_in_string(string_id: str):
+    try:
+        response = (
+            supabase.table(IDEAS_STRINGS_TABLE)
+            .select(f"{IDEAS_TABLE}(id, summary, description, created_at)")
+            .eq("string_id", string_id)
+            .execute()
+        )
+        # print(response)
+        flattened_data = [
+            {
+                "id": idea[IDEAS_TABLE]["id"],
+                "summary": idea[IDEAS_TABLE]["summary"],
+                "description": idea[IDEAS_TABLE]["description"],
+                "created_at": idea[IDEAS_TABLE]["created_at"],
+            }
+            for idea in response.data
+        ]
+        return flattened_data
+    except Exception as e:
+        print(f"String listing failed. {e}")
+        return []
+
+
+def update_string(string_id: int, new_summary: str, new_description: str):
+    try:
+        response = (
+            supabase.table(STRINGS_TABLE)
+            .update({"summary": new_summary, "description": new_description})
+            .eq("id", string_id)
+            .execute()
+        )
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"Error updating string {e}.")
+        return None
+
+
+def add_idea_to_string(idea_id: int, string_id: int):
+    insert = {"idea_id": idea_id, "string_id": string_id}
+    try:
+        response = supabase.table(IDEAS_STRINGS_TABLE).insert(insert).execute()
+        # print(response)
+        return response.data[0]
+    except Exception as e:
+        print(f"String creation failed. {e}")
+        return None
+
+
+def add_ideas_to_string(string_id: int, idea_ids: List[int]):
+    try:
+        to_add = [{"idea_id": idea_id, "string_id": string_id} for idea_id in idea_ids]
+        response = supabase.table(IDEAS_STRINGS_TABLE).insert(to_add).execute()
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"String creation failed. {e}")
+        return None
+
+
+def remove_ideas_from_string(string_id: int, idea_ids: List[int]):
+    try:
+        response = (
+            supabase.table(IDEAS_STRINGS_TABLE)
+            .delete()
+            .eq("string_id", string_id)
+            .in_("idea_id", idea_ids)
+            .execute()
+        )
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"String creation failed. {e}")
+        return None
+
+
+def remove_idea_from_string(idea_id: int, string_id: int):
+    try:
+        response = (
+            supabase.table(IDEAS_STRINGS_TABLE)
+            .delete()
+            .eq("idea_id", idea_id)
+            .eq("string_id", string_id)
+            .execute()
+        )
+        # print(response)
+        return response.data
+    except Exception as e:
+        print(f"Failed to remove idea from string. {e}")
+        return None
 
 
 # def update_login_timestamp(user_id: str):

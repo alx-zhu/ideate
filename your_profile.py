@@ -13,7 +13,7 @@ def save_profile(info):
 @st.experimental_dialog("Edit Profile")
 def edit_profile_dialog(info):
     st.markdown("### Edit Profile")
-    with st.form("profile_form"):
+    with st.form(key="profile_form"):
         l, r = st.columns(2)
         with l:
             info["first_name"] = st.text_input("First Name", info["first_name"])
@@ -24,8 +24,9 @@ def edit_profile_dialog(info):
             "Tagline", info["tagline"], max_chars=SUMMARY_MAX
         )
         info["bio"] = st.text_area("Bio", info["bio"], max_chars=DESCRIPTION_MAX)
-        submit_profile = st.form_submit_button("Save")
-    if submit_profile:
+        submit_profile_edits = st.form_submit_button("Save")
+
+    if submit_profile_edits:
         save_profile(info)
 
 
@@ -33,7 +34,7 @@ def profile_page():
     if "user_id" not in st.session_state:
         st.error("User not logged in")
         return
-
+    
     info = st.session_state.user_info
     total_likes = count_user_likes(st.session_state.user_id)
     # with st.container(border=True):
@@ -41,7 +42,8 @@ def profile_page():
     with l:
         st.subheader(f"{info['first_name']} {info['last_name']} ({info['email']})")
     with r:
-        st.button("Edit", on_click=edit_profile_dialog, args=(info,), key="edit_profile_button")
+        if st.button("Edit", key="edit_profile_button"):
+            edit_profile_dialog(info)
     st.markdown(f"#### *{info["tagline"]}*" if info["tagline"] else "#### *No tagline yet*")
     st.markdown(f"{info['bio']}" if info["bio"] else "*No bio yet*")
     
@@ -52,16 +54,26 @@ def profile_page():
     with row1[0]:
         with st.container(border=True):
             st.subheader(f"Streak")
-            st.title(f"{info['streak']} :fire:")
+            st.header(f"{info['streak']} :fire:")
     with row1[1]:
         with st.container(border=True):
             st.subheader(f"Ideas")
-            st.title(f"{len(st.session_state.ideas) if 'ideas' in st.session_state else 0} :bulb:")
+            st.header(f"{len(st.session_state.ideas) if 'ideas' in st.session_state else 0} :bulb:")
     with row1[2]:
         with st.container(border=True):
             st.subheader(f"Posts")
-            st.title(f"{len(st.session_state.your_posts) if 'your_posts' in st.session_state else 0} :pencil:")
+            st.header(f"{len(st.session_state.your_posts) if 'your_posts' in st.session_state else 0} :pencil:")
     with row1[3]:
         with st.container(border=True):
             st.subheader(f"Likes")
-            st.title(f"{total_likes} :heart:")
+            st.header(f"{total_likes} :heart:")
+
+    row2 = st.columns(4)
+    with row2[0]:
+        with st.container(border=True):
+            st.subheader(f"Longest")
+            st.header(f"{info['best_streak']} :fire:")
+    with row2[1]:
+        with st.container(border=True):
+            st.subheader(f"Strings")
+            st.header(f"{len(st.session_state.strings) if 'strings' in st.session_state else 0} :thread:")

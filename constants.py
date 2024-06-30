@@ -2,5 +2,7 @@ IDEAS_TABLE = "ideas"
 POSTS_TABLE = "posts"
 USERS_TABLE = "users"
 LIKES_TABLE = "likes"
+STRINGS_TABLE = "strings"
+IDEAS_STRINGS_TABLE = "ideas_strings"
 SUMMARY_MAX = 100
 DESCRIPTION_MAX = 500
