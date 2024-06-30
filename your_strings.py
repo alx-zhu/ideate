@@ -1,6 +1,6 @@
 import streamlit as st
 
-from constants import DESCRIPTION_MAX, SUMMARY_MAX
+from constants import DESCRIPTION_MAX, IDEAS_TABLE, SUMMARY_MAX
 from supabase_helpers import add_ideas_to_string, add_string, list_ideas_in_string, list_user_strings, remove_ideas_from_string, update_string
 
 @st.experimental_dialog("Edit String")
@@ -25,11 +25,11 @@ def edit_string_dialog(string):
 
 @st.experimental_dialog("Attach String")
 def attach_string_dialog(string):
-    idea_ids_in_string = set([idea["id"] for idea in string["ideas"]])
+    idea_ids_in_string = set([idea["id"] for idea in string[IDEAS_TABLE]])
     with st.form(key="attach_string_form"):
         to_remove = []
         with st.expander("Detach Ideas from this String"):
-            for idea in string["ideas"]:
+            for idea in string[IDEAS_TABLE]:
                 if not st.checkbox(idea["summary"], key=f"remove_idea{idea["id"]}", value=True, help="Uncheck to detach this idea."):
                     to_remove.append(idea["id"])
         to_add_pairs = []
@@ -45,7 +45,7 @@ def attach_string_dialog(string):
             if add_ideas_to_string(string["id"], [idea_id for (idea_id, _) in to_add_pairs]):
                 st.success("Ideas attached successfully")
                 for _, idea in to_add_pairs:
-                    string["ideas"].append(idea)
+                    string[IDEAS_TABLE].append(idea)
             else:
                 st.error("Error. Ideas could not be attached. Idea changes were not saved.")
 
@@ -53,21 +53,21 @@ def attach_string_dialog(string):
             if remove_ideas_from_string(string["id"], to_remove):
                     st.success("Ideas detached successfully")
                     to_remove = set(to_remove)
-                    string["ideas"] = [idea for idea in string["ideas"] if idea["id"] not in to_remove]
+                    string[IDEAS_TABLE] = [idea for idea in string[IDEAS_TABLE] if idea["id"] not in to_remove]
             else:
                 st.error("Error. Ideas could not be detached.")
         st.rerun()
 
 @st.experimental_dialog("Add New String")
 def new_string_dialog():
-    to_add = []
+    to_add_pairs = []
     with st.form(key="string_form"):
         summary = st.text_input("String one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your string:", max_chars=DESCRIPTION_MAX)
         with st.expander("Select ideas to attach to this String"):
             for idea in st.session_state.ideas:
                 if st.checkbox(idea["summary"], key=f"idea{idea["id"]}"):
-                    to_add.append(idea["id"])
+                    to_add_pairs.append((idea["id"], idea))
         submit_button = st.form_submit_button(label="Submit")
 
     # Add the new string to the session state
@@ -76,8 +76,10 @@ def new_string_dialog():
             if string := add_string(summary, description):
                 st.session_state.strings = [string] + st.session_state.strings
                 st.success("Your string has been added!")
-                if add_ideas_to_string(string["id"], to_add):
+                if add_ideas_to_string(string["id"], [idea_id for (idea_id, _) in to_add_pairs]):
                     st.success("Ideas attached successfully!")
+                    for _, idea in to_add_pairs:
+                        string[IDEAS_TABLE].append(idea)
                 else:
                     st.error("Error. Ideas could not be attached.")
                 st.rerun()
@@ -91,7 +93,7 @@ def strings_page():
     if "strings" not in st.session_state:
         st.session_state.strings = list_user_strings(st.session_state.user_id)
         for string in st.session_state.strings:
-            string["ideas"] = list_ideas_in_string(string["id"])
+            string[IDEAS_TABLE] = list_ideas_in_string(string["id"])
 
     if st.button("New String", key="new_string_button", type="primary", use_container_width=True):
         new_string_dialog()
@@ -100,14 +102,14 @@ def strings_page():
         with l:
             st.markdown(f"#### {string["summary"]}")
             st.markdown(f"*{string["description"]}*")
-            st.markdown(f"*Created: {string["created_at"]}*")
+            
         with r:
             with st.expander("Options"):
                 if st.button("Edit", key=f"edit_string_{i}", use_container_width=True):
                     edit_string_dialog(i, string)
                 # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
                 #     delete_dialog(i)            
-        for idea in string["ideas"]:
+        for idea in string[IDEAS_TABLE]:
             with st.expander(idea["summary"]):
                 st.markdown(f"#### {idea["summary"]}")
                 st.markdown(f"*{idea["description"]}*")
