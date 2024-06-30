@@ -11,25 +11,21 @@ from constants import SUMMARY_MAX, DESCRIPTION_MAX
 def edit_idea_dialog(idea):
     with st.form(key="edit_idea_form"):
         new_summary = st.text_input(
-            "Idea one-liner", idea["summary"], max_chars=SUMMARY_MAX
+            "Give your idea a one-line introduction:",
+            idea["summary"],
+            max_chars=SUMMARY_MAX,
+            help="The idea one-liner should help someone immediately understand what your idea is about without too much detail!",
         )
         new_description = st.text_area(
-            "Describe your idea:", idea["description"], max_chars=DESCRIPTION_MAX
+            "Describe some details about your idea:",
+            idea["description"],
+            max_chars=DESCRIPTION_MAX,
+            help="Describe your idea in a bit more detail, but not too much! Make sure to keep it concise.",
         )
-        l, r = st.columns(2)
-        with l:
-            submit_button = st.form_submit_button(
-                "Save",
-                use_container_width=True,
-                type="primary",
-            )
-        with r:
-            if st.button(
-                "Cancel",
-                key=f"cancel_idea_edit",
-                use_container_width=True,
-            ):
-                st.rerun()
+        submit_button = st.form_submit_button(
+            "Save",
+            use_container_width=True,
+        )
 
     if submit_button:
         if new_summary and new_description:
