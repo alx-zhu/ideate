@@ -12,7 +12,7 @@ def save_profile(info):
     st.rerun()
 
 
-@st.experimental_dialog("Edit Profile")
+@st.experimental_dialog("Edit Profile", width="large")
 def edit_profile_dialog(info):
     st.markdown("### Edit Profile")
     with st.form(key="profile_form"):

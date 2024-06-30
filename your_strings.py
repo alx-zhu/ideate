@@ -53,7 +53,20 @@ def attach_string_dialog(string):
             for idea in can_attach:
                 if st.checkbox(idea["summary"], key=f"idea{idea['id']}"):
                     to_add_pairs.append((idea["id"], idea))
-        submit_button = st.form_submit_button(label="Save")
+        l, r = st.columns(2)
+        with l:
+            submit_button = st.form_submit_button(
+                "Save",
+                use_container_width=True,
+                type="primary",
+            )
+        with r:
+            if st.button(
+                "Cancel",
+                key=f"cancel_idea_edit",
+                use_container_width=True,
+            ):
+                st.rerun()
 
     if submit_button:
         if to_add_pairs:
@@ -103,7 +116,7 @@ def new_string_dialog():
                     string["id"], [idea_id for (idea_id, _) in to_add_pairs]
                 ):
                     st.success("Ideas attached successfully!")
-                    string["ideas"] = [idea for _, idea in to_add_pairs]
+                    string[IDEAS_TABLE] = [idea for _, idea in to_add_pairs]
                 else:
                     st.error("Error. Ideas could not be attached.")
                 st.rerun()

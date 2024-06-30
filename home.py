@@ -6,15 +6,15 @@ from your_strings import strings_page
 
 
 def home_page():
-    initialize()
     st.title("String Theories")
     [
         your_profile_page,
         your_ideas_page,
         your_strings_page,
         your_posts_page,
-    ] = st.tabs(["Profile", "Your Ideas", "Your Idea Strings", "Your Posts"])
+    ] = st.tabs(["Profile", "Your Ideas", "Your Strings", "Your Posts"])
 
+    initialize()
     with your_profile_page:
         profile_page()
 

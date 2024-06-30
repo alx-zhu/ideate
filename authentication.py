@@ -1,5 +1,7 @@
 import streamlit as st
 
+from constants import HOME_PAGE
+
 
 def authentication_page():
     supabase = st.session_state.supabase

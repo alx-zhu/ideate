@@ -6,3 +6,7 @@ STRINGS_TABLE = "strings"
 IDEAS_STRINGS_TABLE = "ideas_strings"
 SUMMARY_MAX = 100
 DESCRIPTION_MAX = 500
+HOME_PAGE = "Home"
+FEED_PAGE = "Feed"
+ABOUT_PAGE = "About"
+LOGIN_PAGE = "Login/Sign Up"
