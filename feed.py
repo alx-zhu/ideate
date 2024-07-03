@@ -1,23 +1,24 @@
 import streamlit as st
 from constants import IDEAS_TABLE, USERS_TABLE
+from supabase_client import SupabaseClient
 
 
 def like_post(i, post):
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     supabase.user_likes_post(st.session_state.user_id, post["id"])
     st.session_state.posts[i]["like_count"] += 1
     st.session_state.posts[i]["has_liked"] = True
 
 
 def unlike_post(i, post):
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     supabase.user_unlikes_post(st.session_state.user_id, post["id"])
     st.session_state.posts[i]["like_count"] -= 1
     st.session_state.posts[i]["has_liked"] = False
 
 
 def feed_page():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     st.title("Feed")
     st.divider()
     st.session_state.posts = supabase.list_posts()

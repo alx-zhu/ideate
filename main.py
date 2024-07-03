@@ -11,7 +11,7 @@ if __name__ == "__main__":
     if "supabase" not in st.session_state:
         st.session_state.supabase = SupabaseClient()
 
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     if "page" not in st.session_state:
         st.session_state.page = "Login/Sign Up"
     if "user_id" in st.session_state and st.session_state.user_id:

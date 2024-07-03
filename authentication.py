@@ -1,10 +1,9 @@
 import streamlit as st
-
-from constants import HOME_PAGE
+from supabase_client import SupabaseClient
 
 
 def authentication_page():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     tabs = st.tabs(["Login", "Sign Up"])
 
     with tabs[0]:

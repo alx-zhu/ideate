@@ -1,5 +1,6 @@
 import streamlit as st
 from constants import SUMMARY_MAX, DESCRIPTION_MAX
+from supabase_client import SupabaseClient
 
 
 ################################################################################
@@ -59,7 +60,7 @@ def delete_dialog(index):
 
 @st.experimental_dialog("Add New Idea", width="large")
 def new_idea_dialog():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     with st.form(key="idea_form"):
         summary = st.text_input("Idea one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your idea:", max_chars=DESCRIPTION_MAX)
@@ -81,7 +82,7 @@ def new_idea_dialog():
 
 @st.experimental_dialog("Share Idea", width="large")
 def share_idea_dialog(idea):
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     st.divider()
     st.markdown(f"## **Tagline**: {idea['summary']}")
     st.markdown(f"#### **Description**: *{idea['description']}*")
@@ -112,7 +113,7 @@ def share_idea_dialog(idea):
 
 
 def ideation_page():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
 
     # Initialize session state to store ideas
     if "ideas" not in st.session_state:

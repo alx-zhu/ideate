@@ -1,9 +1,10 @@
 import streamlit as st
 from constants import SUMMARY_MAX, DESCRIPTION_MAX
+from supabase_client import SupabaseClient
 
 
 def save_profile(info):
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     st.session_state.user_info = info
     if supabase.update_user_info(user_id=st.session_state.user_id, **info):
         st.success("Profile updated successfully")
@@ -33,7 +34,7 @@ def edit_profile_dialog(info):
 
 
 def profile_page():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     if "user_id" not in st.session_state:
         st.error("User not logged in")
         return

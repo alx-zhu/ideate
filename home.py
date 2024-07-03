@@ -1,4 +1,5 @@
 import streamlit as st
+from supabase_client import SupabaseClient
 from your_ideas import ideation_page
 from your_posts import posts_page
 from your_profile import profile_page
@@ -29,7 +30,7 @@ def home_page():
 
 
 def initialize():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     if "ideas" not in st.session_state:
         st.session_state.ideas = supabase.list_ideas(st.session_state.user_id)
         for idea in st.session_state.ideas:

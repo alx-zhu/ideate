@@ -1,9 +1,10 @@
 import streamlit as st
 from constants import IDEAS_TABLE
+from supabase_client import SupabaseClient
 
 
 def posts_page():
-    supabase = st.session_state.supabase
+    supabase: SupabaseClient = st.session_state.supabase
     if "your_posts" not in st.session_state:
         st.session_state.your_posts = supabase.list_user_posts(st.session_state.user_id)
 

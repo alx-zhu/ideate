@@ -19,7 +19,7 @@ class SupabaseClient(object):
     ):
         self.url = url
         self.key = key
-        self.supabase = create_client(url, key)
+        self.supabase: Client = create_client(url, key)
 
     ################################################################################
     ############################### AUTHENTICATION #################################
@@ -103,11 +103,11 @@ class SupabaseClient(object):
                 self.supabase.table(USERS_TABLE)
                 .update(
                     {
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": email,
-                        "tagline": tagline,
-                        "bio": bio,
+                        "first_name": first_name.strip(),
+                        "last_name": last_name.strip(),
+                        "email": email.strip(),
+                        "tagline": tagline.strip(),
+                        "bio": bio.strip(),
                     }
                 )
                 .eq("id", user_id)
@@ -138,7 +138,7 @@ class SupabaseClient(object):
     ################################################################################
 
     def add_idea(self, summary: str, description: str, user_id: str = ""):
-        insert = {"summary": summary, "description": description}
+        insert = {"summary": summary.strip(), "description": description.strip()}
         if user_id:
             insert["user_id"] = user_id
         try:
@@ -165,11 +165,15 @@ class SupabaseClient(object):
             return []
 
     def update_idea(self, idea_id: int, new_summary: str, new_description: str):
-        print(f"Updating idea {idea_id} with {new_summary} and {new_description}")
         try:
             response = (
                 self.supabase.table(IDEAS_TABLE)
-                .update({"summary": new_summary, "description": new_description})
+                .update(
+                    {
+                        "summary": new_summary.strip(),
+                        "description": new_description.strip(),
+                    }
+                )
                 .eq("id", idea_id)
                 .execute()
             )
@@ -312,7 +316,7 @@ class SupabaseClient(object):
     ################################################################################
 
     def add_string(self, summary: str, description: str):
-        insert = {"summary": summary, "description": description}
+        insert = {"summary": summary.strip(), "description": description.strip()}
         try:
             response = self.supabase.table(STRINGS_TABLE).insert(insert).execute()
             # print(response)
@@ -363,7 +367,12 @@ class SupabaseClient(object):
         try:
             response = (
                 self.supabase.table(STRINGS_TABLE)
-                .update({"summary": new_summary, "description": new_description})
+                .update(
+                    {
+                        "summary": new_summary.strip(),
+                        "description": new_description.strip(),
+                    }
+                )
                 .eq("id", string_id)
                 .execute()
             )
@@ -383,10 +392,22 @@ class SupabaseClient(object):
             print(f"String creation failed. {e}")
             return None
 
-    def add_ideas_to_string(self, string_id: int, idea_ids: List[int]):
+    def add_many_ideas_to_string(self, string_id: int, idea_ids: List[int]):
         try:
             to_add = [
                 {"idea_id": idea_id, "string_id": string_id} for idea_id in idea_ids
+            ]
+            response = self.supabase.table(IDEAS_STRINGS_TABLE).insert(to_add).execute()
+            # print(response)
+            return response.data
+        except Exception as e:
+            print(f"String creation failed. {e}")
+            return None
+
+    def add_idea_to_many_strings(self, idea_id: int, string_ids: List[int]):
+        try:
+            to_add = [
+                {"idea_id": idea_id, "string_id": string_id} for string_id in string_ids
             ]
             response = self.supabase.table(IDEAS_STRINGS_TABLE).insert(to_add).execute()
             # print(response)
@@ -424,16 +445,3 @@ class SupabaseClient(object):
         except Exception as e:
             print(f"Failed to remove idea from string. {e}")
             return None
-
-
-# def update_login_timestamp(user_id: str):
-#     # Get the local timezone
-#     local_timezone = tzlocal.get_localzone()
-#     # Get the current time in the local timezone
-#     local_time = datetime.now(local_timezone)
-#     try:
-#         response = (
-#             self.supabase.table(USERS_TABLE).update({"last_login": local_time.isoformat()}).eq({"user_id", user_id})
-#         )
-
-#     except Exception as e:
