@@ -64,7 +64,7 @@ def profile_page():
         with st.container(border=True):
             st.subheader(f"Ideas")
             st.header(
-                f"{len(st.session_state.ideas) if 'ideas' in st.session_state else 0} :bulb:"
+                f"{len(st.session_state.thoughts) if 'thoughts' in st.session_state else 0} :bulb:"
             )
     with row1[2]:
         with st.container(border=True):

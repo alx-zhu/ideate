@@ -28,11 +28,11 @@ def feed_page():
         )
 
     for i, post in enumerate(st.session_state.posts):
-        idea = post[IDEAS_TABLE]
+        thought = post[IDEAS_TABLE]
         user = post[USERS_TABLE]
-        st.markdown(f"#### {idea['summary']}")
-        st.markdown(f"*{idea['description']}*")
-        st.markdown(f"*Created: {idea['created_at']}*")
+        st.markdown(f"#### {thought['summary']}")
+        st.markdown(f"*{thought['description']}*")
+        st.markdown(f"*Created: {thought['created_at']}*")
         st.write(f"Idea by **{user['first_name']} {user['last_name']}**")
         if post["has_liked"]:
             st.button(

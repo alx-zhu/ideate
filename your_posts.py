@@ -10,14 +10,14 @@ def posts_page():
 
     if len(st.session_state.your_posts) == 0:
         st.write(
-            "You have not posted any ideas yet. Get started by clicking on the 'Your Ideas' tab above!"
+            "You have not posted any thoughts yet. Get started by clicking on the 'Your Ideas' tab above!"
         )
         return
 
     for post in st.session_state.your_posts:
-        idea = post[IDEAS_TABLE]
-        st.markdown(f"#### {idea['summary']}")
-        st.markdown(f"*{idea['description']}*")
-        st.markdown(f"*Created: {idea['created_at']}*")
+        thought = post[IDEAS_TABLE]
+        st.markdown(f"#### {thought['summary']}")
+        st.markdown(f"*{thought['description']}*")
+        st.markdown(f"*Created: {thought['created_at']}*")
         st.write(f":heart: {post['like_count']}")
         st.divider()

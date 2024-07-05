@@ -1,4 +1,4 @@
-# ideate
+# thoughtte
 
 ## License
 

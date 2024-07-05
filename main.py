@@ -41,7 +41,7 @@ if __name__ == "__main__":
             if st.button("Logout", key="logout_button", use_container_width=True):
                 st.session_state.user_id = None
                 st.session_state.your_posts = None
-                st.session_state.ideas = None
+                st.session_state.thoughts = None
                 st.session_state.user_info = None
                 st.rerun()
 

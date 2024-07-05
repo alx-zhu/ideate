@@ -31,28 +31,28 @@ def edit_string_dialog(string):
 @st.experimental_dialog("Attach String", width="large")
 def attach_string_dialog(string):
     supabase: SupabaseClient = st.session_state.supabase
-    idea_ids_in_string = set([idea["id"] for idea in string[IDEAS_TABLE]])
+    thought_ids_in_string = set([thought["id"] for thought in string[IDEAS_TABLE]])
     with st.form(key="attach_string_form", border=0):
         to_remove = []
         with st.expander("Detach Ideas from this String", expanded=True):
-            for idea in string[IDEAS_TABLE]:
+            for thought in string[IDEAS_TABLE]:
                 if not st.checkbox(
-                    idea["summary"],
-                    key=f"remove_idea{idea['id']}",
+                    thought["summary"],
+                    key=f"remove_thought{thought['id']}",
                     value=True,
-                    help="Uncheck to detach this idea.",
+                    help="Uncheck to detach this thought.",
                 ):
-                    to_remove.append(idea["id"])
+                    to_remove.append(thought["id"])
         to_add_pairs = []
-        with st.expander("Select ideas to attach to this String", expanded=True):
+        with st.expander("Select thoughts to attach to this String", expanded=True):
             can_attach = [
-                idea
-                for idea in st.session_state.ideas
-                if idea["id"] not in idea_ids_in_string
+                thought
+                for thought in st.session_state.thoughts
+                if thought["id"] not in thought_ids_in_string
             ]
-            for idea in can_attach:
-                if st.checkbox(idea["summary"], key=f"idea{idea['id']}"):
-                    to_add_pairs.append((idea["id"], idea))
+            for thought in can_attach:
+                if st.checkbox(thought["summary"], key=f"thought{thought['id']}"):
+                    to_add_pairs.append((thought["id"], thought))
         submit_button = st.form_submit_button(
             "Save",
             use_container_width=True,
@@ -60,23 +60,25 @@ def attach_string_dialog(string):
 
     if submit_button:
         if to_add_pairs:
-            if supabase.add_many_ideas_to_string(
-                string["id"], [idea_id for (idea_id, _) in to_add_pairs]
+            if supabase.add_many_thoughts_to_string(
+                string["id"], [thought_id for (thought_id, _) in to_add_pairs]
             ):
                 st.success("Ideas attached successfully")
-                for _, idea in to_add_pairs:
-                    string[IDEAS_TABLE].append(idea)
+                for _, thought in to_add_pairs:
+                    string[IDEAS_TABLE].append(thought)
             else:
                 st.error(
                     "Error. Ideas could not be attached. Idea changes were not saved."
                 )
 
         if to_remove:
-            if supabase.remove_ideas_from_string(string["id"], to_remove):
+            if supabase.remove_thoughts_from_string(string["id"], to_remove):
                 st.success("Ideas detached successfully")
                 to_remove = set(to_remove)
                 string[IDEAS_TABLE] = [
-                    idea for idea in string[IDEAS_TABLE] if idea["id"] not in to_remove
+                    thought
+                    for thought in string[IDEAS_TABLE]
+                    if thought["id"] not in to_remove
                 ]
             else:
                 st.error("Error. Ideas could not be detached.")
@@ -90,10 +92,10 @@ def new_string_dialog():
     with st.form(key="string_form"):
         summary = st.text_input("String one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your string:", max_chars=DESCRIPTION_MAX)
-        with st.expander("Select ideas to attach to this String", expanded=True):
-            for idea in st.session_state.ideas:
-                if st.checkbox(idea["summary"], key=f"idea{idea['id']}"):
-                    to_add_pairs.append((idea["id"], idea))
+        with st.expander("Select thoughts to attach to this String", expanded=True):
+            for thought in st.session_state.thoughts:
+                if st.checkbox(thought["summary"], key=f"thought{thought['id']}"):
+                    to_add_pairs.append((thought["id"], thought))
         submit_button = st.form_submit_button(label="Submit")
 
     # Add the new string to the session state
@@ -104,11 +106,11 @@ def new_string_dialog():
                 st.session_state.strings = [string] + st.session_state.strings
                 if len(to_add_pairs) == 0:
                     string[IDEAS_TABLE] = []
-                elif supabase.add_ideas_to_string(
-                    string["id"], [idea_id for (idea_id, _) in to_add_pairs]
+                elif supabase.add_many_thoughts_to_string(
+                    string["id"], [thought_id for (thought_id, _) in to_add_pairs]
                 ):
                     st.success("Ideas attached successfully!")
-                    string[IDEAS_TABLE] = [idea for _, idea in to_add_pairs]
+                    string[IDEAS_TABLE] = [thought for _, thought in to_add_pairs]
                 else:
                     st.error("Error. Ideas could not be attached.")
                 st.rerun()
@@ -123,7 +125,7 @@ def strings_page():
     if "strings" not in st.session_state:
         st.session_state.strings = supabase.list_user_strings(st.session_state.user_id)
         for string in st.session_state.strings:
-            string[IDEAS_TABLE] = supabase.list_ideas_in_string(string["id"])
+            string[IDEAS_TABLE] = supabase.list_thoughts_in_string(string["id"])
 
     if st.button(
         "New String", key="new_string_button", type="primary", use_container_width=True
@@ -142,11 +144,11 @@ def strings_page():
                     edit_string_dialog(string)
                 # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
                 #     delete_dialog(i)
-        for idea in string[IDEAS_TABLE]:
-            with st.expander(idea["summary"]):
-                st.markdown(f"#### {idea['summary']}")
-                st.markdown(f"*{idea['description']}*")
-                st.markdown(f"*Created: {idea['created_at']}*")
+        for thought in string[IDEAS_TABLE]:
+            with st.expander(thought["summary"]):
+                st.markdown(f"#### {thought['summary']}")
+                st.markdown(f"*{thought['description']}*")
+                st.markdown(f"*Created: {thought['created_at']}*")
         if st.button(
             "Attach/Detach Ideas", key=f"attach_string_{i}", use_container_width=True
         ):
