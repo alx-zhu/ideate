@@ -2,12 +2,13 @@ from typing import List
 import streamlit as st
 from supabase import create_client, Client
 from constants import (
-    IDEAS_STRINGS_TABLE,
-    IDEAS_TABLE,
+    TOPIC_THOUGHTS_TABLE,
+    THOUGHTS_TABLE,
     POSTS_TABLE,
-    STRINGS_TABLE,
+    TOPICS_TABLE,
     USERS_TABLE,
     LIKES_TABLE,
+    STRINGS_TABLE,
 )
 
 
@@ -147,17 +148,17 @@ class SupabaseClient(object):
         if user_id:
             insert["user_id"] = user_id
         try:
-            response = self.supabase.table(IDEAS_TABLE).insert(insert).execute()
+            response = self.supabase.table(THOUGHTS_TABLE).insert(insert).execute()
             # print(response)
             return response.data[0]
         except Exception as e:
-            print(f"Idea creation failed. {e}")
+            print(f"Thought creation failed. {e}")
             return None
 
     def list_thoughts(self, user_id: str):
         try:
             response = (
-                self.supabase.table(IDEAS_TABLE)
+                self.supabase.table(THOUGHTS_TABLE)
                 .select("*")
                 .eq("user_id", user_id)
                 .order("created_at", desc=True)
@@ -166,7 +167,7 @@ class SupabaseClient(object):
             # print(response)
             return response.data
         except Exception as e:
-            print(f"Idea listing failed. {e}")
+            print(f"Thought listing failed. {e}")
             return []
 
     def update_thought(
@@ -174,7 +175,7 @@ class SupabaseClient(object):
     ):
         try:
             response = (
-                self.supabase.table(IDEAS_TABLE)
+                self.supabase.table(THOUGHTS_TABLE)
                 .update(
                     {
                         "summary": new_summary.strip(),
@@ -185,7 +186,7 @@ class SupabaseClient(object):
                 .eq("id", thought_id)
                 .execute()
             )
-            print(response)
+            # print(response)
             return response.data
         except Exception as e:
             print(f"Error updating thought {e}.")
@@ -212,7 +213,7 @@ class SupabaseClient(object):
             response = (
                 self.supabase.table(POSTS_TABLE)
                 .select(
-                    f"id, like_count, {IDEAS_TABLE}(summary, description, created_at), {USERS_TABLE}!posts_user_id_fkey(first_name, last_name, email)"
+                    f"id, like_count, {THOUGHTS_TABLE}(summary, description, created_at), {USERS_TABLE}!posts_user_id_fkey(first_name, last_name, email)"
                 )
                 .order("created_at", desc=True)
                 .execute()
@@ -228,7 +229,7 @@ class SupabaseClient(object):
             response = (
                 self.supabase.table(POSTS_TABLE)
                 .select(
-                    f"id, like_count, {IDEAS_TABLE}(summary, description, created_at)"
+                    f"id, like_count, {THOUGHTS_TABLE}(summary, description, created_at)"
                 )
                 .eq("user_id", user_id)
                 .order("created_at", desc=True)
@@ -323,8 +324,57 @@ class SupabaseClient(object):
     ################################## STRINGS #####################################
     ################################################################################
 
-    def add_string(self, summary: str, description: str):
-        insert = {"summary": summary.strip(), "description": description.strip()}
+    def list_user_strings(self, user_id: str):
+        try:
+            response = (
+                self.supabase.table(STRINGS_TABLE)
+                .select("*")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            # print(response)
+            return response.data
+        except Exception as e:
+            print(f"String listing failed. {e}")
+            return []
+
+    def list_connected_thoughts(self, thought_id: int):
+        try:
+            data = [
+                row["j"]
+                for row in (
+                    self.supabase.table(STRINGS_TABLE)
+                    .select(f"j")
+                    .eq("i", thought_id)
+                    .execute()
+                ).data
+            ]
+            data += [
+                row["i"]
+                for row in (
+                    self.supabase.table(STRINGS_TABLE)
+                    .select(f"i")
+                    .eq("j", thought_id)
+                    .execute()
+                ).data
+            ]
+            # {THOUGHTS_TABLE}!thought_strings_i_fkey(id, summary, description, created_at)
+            # flattened_data = [
+            #     {
+            #         "id": thought[THOUGHTS_TABLE]["id"],
+            #         "summary": thought[THOUGHTS_TABLE]["summary"],
+            #         "description": thought[THOUGHTS_TABLE]["description"],
+            #         "created_at": thought[THOUGHTS_TABLE]["created_at"],
+            #     }
+            #     for thought in response.data
+            # ]
+            return data
+        except Exception as e:
+            print(f"String listing failed. {e}")
+            return []
+
+    def add_string(self, thought_1: int, thought_2: int):
+        insert = {"i": thought_1, "j": thought_2}
         try:
             response = self.supabase.table(STRINGS_TABLE).insert(insert).execute()
             # print(response)
@@ -333,10 +383,50 @@ class SupabaseClient(object):
             print(f"String creation failed. {e}")
             return None
 
-    def list_user_strings(self, user_id: str):
+    def connect_many_thoughts(self, thought_1: int, thought_ids: List[int]):
+        try:
+            to_add = [{"i": thought_1, "j": thought_id} for thought_id in thought_ids]
+            response = self.supabase.table(STRINGS_TABLE).insert(to_add).execute()
+            # print(response)
+            return response.data
+        except Exception as e:
+            print(f"String creation failed. {e}")
+            return None
+
+    def delete_string(self, thought_1: int, thought_2: int):
         try:
             response = (
                 self.supabase.table(STRINGS_TABLE)
+                .delete()
+                .or_(
+                    f"(i.eq.{thought_1} and j.eq.{thought_2}), (i.eq.{thought_2} and j.eq.{thought_1})"
+                )
+                .execute()
+            )
+            # print(response)
+            return response.data
+        except Exception as e:
+            print(f"Failed to delete string. {e}")
+            return None
+
+    ################################################################################
+    ################################## TOPICS ######################################
+    ################################################################################
+
+    def add_topic(self, summary: str, description: str):
+        insert = {"summary": summary.strip(), "description": description.strip()}
+        try:
+            response = self.supabase.table(TOPICS_TABLE).insert(insert).execute()
+            # print(response)
+            return response.data[0]
+        except Exception as e:
+            print(f"Topic creation failed. {e}")
+            return None
+
+    def list_user_topics(self, user_id: str):
+        try:
+            response = (
+                self.supabase.table(TOPICS_TABLE)
                 .select("*")
                 .eq("user_id", user_id)
                 .order("created_at", desc=True)
@@ -345,113 +435,119 @@ class SupabaseClient(object):
             # print(response)
             return response.data
         except Exception as e:
-            print(f"String listing failed. {e}")
+            print(f"Topic listing failed. {e}")
             return []
 
-    def list_thoughts_in_string(self, string_id: str):
+    def list_thoughts_in_topic(self, topic_id: str):
         try:
             response = (
-                self.supabase.table(IDEAS_STRINGS_TABLE)
-                .select(f"{IDEAS_TABLE}(id, summary, description, created_at)")
-                .eq("string_id", string_id)
+                self.supabase.table(TOPIC_THOUGHTS_TABLE)
+                .select(f"{THOUGHTS_TABLE}(id, summary, description, created_at)")
+                .eq("topic_id", topic_id)
                 .execute()
             )
             # print(response)
             flattened_data = [
                 {
-                    "id": thought[IDEAS_TABLE]["id"],
-                    "summary": thought[IDEAS_TABLE]["summary"],
-                    "description": thought[IDEAS_TABLE]["description"],
-                    "created_at": thought[IDEAS_TABLE]["created_at"],
+                    "id": thought[THOUGHTS_TABLE]["id"],
+                    "summary": thought[THOUGHTS_TABLE]["summary"],
+                    "description": thought[THOUGHTS_TABLE]["description"],
+                    "created_at": thought[THOUGHTS_TABLE]["created_at"],
                 }
                 for thought in response.data
             ]
             return flattened_data
         except Exception as e:
-            print(f"String listing failed. {e}")
+            print(f"Topic listing failed. {e}")
             return []
 
-    def update_string(self, string_id: int, new_summary: str, new_description: str):
+    def update_topic(self, topic_id: int, new_summary: str, new_description: str):
         try:
             response = (
-                self.supabase.table(STRINGS_TABLE)
+                self.supabase.table(TOPICS_TABLE)
                 .update(
                     {
                         "summary": new_summary.strip(),
                         "description": new_description.strip(),
                     }
                 )
-                .eq("id", string_id)
+                .eq("id", topic_id)
                 .execute()
             )
             # print(response)
             return response.data
         except Exception as e:
-            print(f"Error updating string {e}.")
+            print(f"Error updating topic {e}.")
             return None
 
-    def add_thought_to_string(self, thought_id: int, string_id: int):
-        insert = {"thought_id": thought_id, "string_id": string_id}
+    def add_thought_to_topic(self, thought_id: int, topic_id: int):
+        insert = {"thought_id": thought_id, "topic_id": topic_id}
         try:
-            response = self.supabase.table(IDEAS_STRINGS_TABLE).insert(insert).execute()
+            response = (
+                self.supabase.table(TOPIC_THOUGHTS_TABLE).insert(insert).execute()
+            )
             # print(response)
             return response.data[0]
         except Exception as e:
-            print(f"String creation failed. {e}")
+            print(f"Topic creation failed. {e}")
             return None
 
-    def add_many_thoughts_to_string(self, string_id: int, thought_ids: List[int]):
+    def add_many_thoughts_to_topic(self, topic_id: int, thought_ids: List[int]):
         try:
             to_add = [
-                {"thought_id": thought_id, "string_id": string_id}
+                {"thought_id": thought_id, "topic_id": topic_id}
                 for thought_id in thought_ids
             ]
-            response = self.supabase.table(IDEAS_STRINGS_TABLE).insert(to_add).execute()
+            response = (
+                self.supabase.table(TOPIC_THOUGHTS_TABLE).insert(to_add).execute()
+            )
             # print(response)
             return response.data
         except Exception as e:
-            print(f"String creation failed. {e}")
+            print(f"Topic creation failed. {e}")
             return None
 
-    def add_thought_to_many_strings(self, thought_id: int, string_ids: List[int]):
+    def add_thought_to_many_topics(self, thought_id: int, topic_ids: List[int]):
         try:
             to_add = [
-                {"thought_id": thought_id, "string_id": string_id}
-                for string_id in string_ids
+                {"thought_id": thought_id, "topic_id": topic_id}
+                for topic_id in topic_ids
             ]
-            response = self.supabase.table(IDEAS_STRINGS_TABLE).insert(to_add).execute()
+            response = (
+                self.supabase.table(TOPIC_THOUGHTS_TABLE).insert(to_add).execute()
+            )
             # print(response)
             return response.data
         except Exception as e:
-            print(f"String creation failed. {e}")
+            print(f"Topic creation failed. {e}")
             return None
 
-    def remove_thoughts_from_string(self, string_id: int, thought_ids: List[int]):
+    def remove_thoughts_from_topic(self, topic_id: int, thought_ids: List[int]):
         try:
             response = (
-                self.supabase.table(IDEAS_STRINGS_TABLE)
+                self.supabase.table(TOPIC_THOUGHTS_TABLE)
                 .delete()
-                .eq("string_id", string_id)
+                .eq("topic_id", topic_id)
                 .in_("thought_id", thought_ids)
                 .execute()
             )
             # print(response)
             return response.data
         except Exception as e:
-            print(f"String creation failed. {e}")
+            print(f"Topic creation failed. {e}")
             return None
 
-    def remove_thought_from_string(self, thought_id: int, string_id: int):
+    def remove_thought_from_topic(self, thought_id: int, topic_id: int):
         try:
             response = (
-                self.supabase.table(IDEAS_STRINGS_TABLE)
+                self.supabase.table(TOPIC_THOUGHTS_TABLE)
                 .delete()
                 .eq("thought_id", thought_id)
-                .eq("string_id", string_id)
+                .eq("topic_id", topic_id)
                 .execute()
             )
             # print(response)
             return response.data
         except Exception as e:
-            print(f"Failed to remove thought from string. {e}")
+            print(f"Failed to remove thought from topic. {e}")
             return None

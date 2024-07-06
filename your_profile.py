@@ -62,7 +62,7 @@ def profile_page():
             st.header(f"{info['streak']} :fire:")
     with row1[1]:
         with st.container(border=True):
-            st.subheader(f"Ideas")
+            st.subheader(f"Thoughts")
             st.header(
                 f"{len(st.session_state.thoughts) if 'thoughts' in st.session_state else 0} :bulb:"
             )
@@ -84,7 +84,7 @@ def profile_page():
             st.header(f"{info['best_streak']} :fire:")
     with row2[1]:
         with st.container(border=True):
-            st.subheader(f"Strings")
+            st.subheader(f"Topics")
             st.header(
-                f"{len(st.session_state.strings) if 'strings' in st.session_state else 0} :thread:"
+                f"{len(st.session_state.topics) if 'topics' in st.session_state else 0} :thread:"
             )

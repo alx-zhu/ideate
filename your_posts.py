@@ -1,5 +1,5 @@
 import streamlit as st
-from constants import IDEAS_TABLE
+from constants import THOUGHTS_TABLE
 from supabase_client import SupabaseClient
 
 
@@ -10,12 +10,12 @@ def posts_page():
 
     if len(st.session_state.your_posts) == 0:
         st.write(
-            "You have not posted any thoughts yet. Get started by clicking on the 'Your Ideas' tab above!"
+            "You have not posted any thoughts yet. Get started by clicking on the 'Your Thoughts' tab above!"
         )
         return
 
     for post in st.session_state.your_posts:
-        thought = post[IDEAS_TABLE]
+        thought = post[THOUGHTS_TABLE]
         st.markdown(f"#### {thought['summary']}")
         st.markdown(f"*{thought['description']}*")
         st.markdown(f"*Created: {thought['created_at']}*")

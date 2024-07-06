@@ -19,11 +19,6 @@ def new_thought_dialog():
         )
         summary = st.text_input("Thought one-liner", max_chars=SUMMARY_MAX)
         description = st.text_area("Describe your thought:", max_chars=DESCRIPTION_MAX)
-        to_attach = []
-        with st.expander("Attach to a String", expanded=True):
-            for string in st.session_state.strings:
-                if st.checkbox(string["summary"]):
-                    to_attach.append(string["id"])
         submit_button = st.form_submit_button(label="Submit")
 
     # Add the new thought to the session state
@@ -32,19 +27,15 @@ def new_thought_dialog():
             if thought := supabase.add_thought(summary, description, new_type):
                 thought["edit_mode"] = False
                 st.session_state.thoughts = [thought] + st.session_state.thoughts
+                st.session_state.thought_map[thought["id"]] = thought
                 st.success("Your thought has been added!")
-                if to_attach:
-                    if supabase.add_thought_to_many_strings(thought["id"], to_attach):
-                        st.success("Idea attached to Strings.")
-                    else:
-                        st.error("Error. Idea could not be attached.")
                 st.rerun()
             else:
-                st.error("Error. Idea could not be added.")
+                st.error("Error. Thought could not be added.")
         else:
             st.error("Please make sure all fields are filled out.")
 
-@st.experimental_dialog("Edit Idea", width="large")
+@st.experimental_dialog("Edit Thoughts", width="large")
 def edit_thought_dialog(thought):
     with st.form(key="edit_thought_form"):
         new_type = st.selectbox(
@@ -80,7 +71,7 @@ def edit_thought_dialog(thought):
                 st.success("Your thought has been updated!")
                 st.rerun()
             else:
-                st.error("Error. Idea could not be updated.")
+                st.error("Error. Thoughts could not be updated.")
         else:
             st.error("Please make sure all fields are filled out.")
 
@@ -100,7 +91,7 @@ def delete_dialog(index):
         st.rerun()
 
 
-@st.experimental_dialog("Share Idea", width="large")
+@st.experimental_dialog("Share Thoughts", width="large")
 def share_thought_dialog(thought):
     supabase: SupabaseClient = st.session_state.supabase
     st.divider()
@@ -138,11 +129,9 @@ def thought_page():
     # Initialize session state to store thoughts
     if "thoughts" not in st.session_state:
         st.session_state.thoughts = supabase.list_thoughts(st.session_state.user_id)
-        for thought in st.session_state.thoughts:
-            thought["edit_mode"] = False
 
     # Display all thoughts
-    if st.button("Add Idea", use_container_width=True, type="primary"):
+    if st.button("Add Thoughts", use_container_width=True, type="primary"):
         new_thought_dialog()
 
     # st.divider()
@@ -154,13 +143,13 @@ def thought_page():
                 st.markdown(f"*{thought['description']}*")
                 st.markdown(f"*Created: {thought['created_at']}*")
             with r:
-                if st.button(
-                    "Shared!" if thought["is_posted"] else "Share",
-                    key=f"share_{i}",
-                    use_container_width=True,
-                    disabled=thought["is_posted"],
-                ):
-                    share_thought_dialog(thought)
+                # if st.button(
+                #     "Shared!" if thought["is_posted"] else "Share",
+                #     key=f"share_{i}",
+                #     use_container_width=True,
+                #     disabled=thought["is_posted"],
+                # ):
+                #     share_thought_dialog(thought)
                 with st.expander("Options"):
                     if st.button(
                         "Edit",
@@ -168,8 +157,7 @@ def thought_page():
                         use_container_width=True,
                     ):
                         edit_thought_dialog(thought)
-                    # if st.button("Delete", key=f"delete_{i}", use_container_width=True):
-                    #     delete_dialog(i)
+
             st.divider()
 
     else:

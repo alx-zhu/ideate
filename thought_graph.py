@@ -5,40 +5,40 @@ from constants import pick_type_icon
 
 
 class ThoughtGraph(object):
-    def __init__(self, thoughts, strings):
+    def __init__(self, thoughts, topics):
         self.thoughts = thoughts
-        self.strings = strings
-        self.thoughts_strings = thoughts + strings
+        self.topics = topics
+        self.thoughts_topics = thoughts + topics
         self.thoughts_n = len(thoughts)
-        self.strings_n = len(strings)
-        self.n = self.thoughts_n + self.strings_n
+        self.topics_n = len(topics)
+        self.n = self.thoughts_n + self.topics_n
         self.matrix, self.adj_list, self.edges = self._init_thoughts_graph()
         self.G = self._init_networkx_graph()
-        self.sorted_thoughts, self.sorted_strings = self._init_sort_by_influence()
+        self.sorted_thoughts, self.sorted_topics = self._init_sort_by_influence()
 
-    def refresh_graph(self, thoughts, strings):
+    def refresh_graph(self, thoughts, topics):
         self.thoughts = thoughts
-        self.strings = strings
-        self.thoughts_strings = thoughts + strings
+        self.topics = topics
+        self.thoughts_topics = thoughts + topics
         self.thoughts_n = len(thoughts)
-        self.strings_n = len(strings)
-        self.n = self.thoughts_n + self.strings_n
+        self.topics_n = len(topics)
+        self.n = self.thoughts_n + self.topics_n
         self.matrix, self.adj_list, self.edges = self._init_thoughts_graph()
         self.G = self._init_networkx_graph()
-        self.sorted_thoughts, self.sorted_strings = self._init_sort_by_influence()
+        self.sorted_thoughts, self.sorted_topics = self._init_sort_by_influence()
 
     def _init_thoughts_graph(self):
         thoughts = self.thoughts
-        strings = self.strings
-        n = len(thoughts) + len(strings)
+        topics = self.topics
+        n = len(thoughts) + len(topics)
 
         # id to index maps
         thought_idxs = {}
-        string_idxs = {}
+        topic_idxs = {}
         for i, thought in enumerate(thoughts):
             thought_idxs[thought["id"]] = i
-        for i, string in enumerate(strings):
-            string_idxs[string["id"]] = i + len(thoughts)
+        for i, topic in enumerate(topics):
+            topic_idxs[topic["id"]] = i + len(thoughts)
 
         # Adjacency matrix
         matrix = [[0] * n for _ in range(n)]
@@ -46,19 +46,19 @@ class ThoughtGraph(object):
         edges = []
 
         # Create the graph
-        for string in strings:
-            attached = string["thoughts"]
-            string_idx = string_idxs[string["id"]]
+        for topic in topics:
+            attached = topic["thoughts"]
+            topic_idx = topic_idxs[topic["id"]]
             for thought in attached:
                 thought_idx = thought_idxs[thought["id"]]
                 # Matrix
-                matrix[string_idx][thought_idx] = 1
-                matrix[thought_idx][string_idx] = 1
+                matrix[topic_idx][thought_idx] = 1
+                matrix[thought_idx][topic_idx] = 1
                 # Adj List
-                adj_list[string_idx].append(thought_idx)
-                adj_list[thought_idx].append(string_idx)
+                adj_list[topic_idx].append(thought_idx)
+                adj_list[thought_idx].append(topic_idx)
                 # Edges
-                edges.append((string_idx, thought_idx))
+                edges.append((topic_idx, thought_idx))
 
         return np.array(matrix), adj_list, edges
 
@@ -69,14 +69,14 @@ class ThoughtGraph(object):
                 G.add_node(
                     i,
                     type="thought",
-                    description=self.thoughts_strings[i]["summary"],
-                    thought_type=self.thoughts_strings[i]["type"],
+                    description=self.thoughts_topics[i]["summary"],
+                    thought_type=self.thoughts_topics[i]["type"],
                 )
             else:
                 G.add_node(
                     i,
-                    type="string",
-                    description=self.thoughts_strings[i]["summary"],
+                    type="topic",
+                    description=self.thoughts_topics[i]["summary"],
                 )
         G.add_edges_from(self.edges)
         return G
@@ -106,19 +106,19 @@ class ThoughtGraph(object):
             filter(lambda i: i < self.thoughts_n, sorted_between_eigenvector)
         )
 
-        sorted_strings = list(
+        sorted_topics = list(
             filter(lambda i: i >= self.thoughts_n, sorted_between_eigenvector)
         )
 
-        return sorted_thoughts, sorted_strings
+        return sorted_thoughts, sorted_topics
 
     def get_top_n_influencial(self, n=3):
         top_n_thoughts = self.sorted_thoughts[:n]
-        top_n_strings = self.sorted_strings[:n]
+        top_n_topics = self.sorted_topics[:n]
 
         return (
-            [self.thoughts_strings[i] for i in top_n_thoughts],
-            [self.thoughts_strings[i] for i in top_n_strings],
+            [self.thoughts_topics[i] for i in top_n_thoughts],
+            [self.thoughts_topics[i] for i in top_n_topics],
         )
 
     def create_plot(self):
@@ -179,7 +179,7 @@ class ThoughtGraph(object):
             node_sizes.append(5 * G.degree(node) + 2)
             node_text.append(f"{node} - {G.nodes[node]['description']}")
             node_colors.append(
-                "blue" if G.nodes[node]["type"] == "string" else "rgba(0, 0, 0, 0)"
+                "blue" if G.nodes[node]["type"] == "topic" else "rgba(0, 0, 0, 0)"
             )
             node_symbols.append(
                 pick_type_icon(G.nodes[node]["thought_type"])
@@ -198,7 +198,7 @@ class ThoughtGraph(object):
         fig = go.Figure(
             data=[edge_trace, node_trace],
             layout=go.Layout(
-                title="Your Idea Graph",
+                title="Your Thought Graph",
                 titlefont_size=16,
                 showlegend=False,
                 hovermode="closest",

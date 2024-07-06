@@ -1,5 +1,5 @@
 import streamlit as st
-from constants import IDEAS_TABLE, USERS_TABLE
+from constants import THOUGHTS_TABLE, USERS_TABLE
 from supabase_client import SupabaseClient
 
 
@@ -28,12 +28,12 @@ def feed_page():
         )
 
     for i, post in enumerate(st.session_state.posts):
-        thought = post[IDEAS_TABLE]
+        thought = post[THOUGHTS_TABLE]
         user = post[USERS_TABLE]
         st.markdown(f"#### {thought['summary']}")
         st.markdown(f"*{thought['description']}*")
         st.markdown(f"*Created: {thought['created_at']}*")
-        st.write(f"Idea by **{user['first_name']} {user['last_name']}**")
+        st.write(f"thoughts by **{user['first_name']} {user['last_name']}**")
         if post["has_liked"]:
             st.button(
                 f":heart: {post['like_count']}",
