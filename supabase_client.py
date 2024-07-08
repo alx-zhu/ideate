@@ -8,7 +8,7 @@ from constants import (
     TOPICS_TABLE,
     USERS_TABLE,
     LIKES_TABLE,
-    STRINGS_TABLE,
+    CONNECTIONS_TABLE,
 )
 
 
@@ -327,7 +327,7 @@ class SupabaseClient(object):
     def list_user_strings(self, user_id: str):
         try:
             response = (
-                self.supabase.table(STRINGS_TABLE)
+                self.supabase.table(CONNECTIONS_TABLE)
                 .select("*")
                 .eq("user_id", user_id)
                 .execute()
@@ -343,7 +343,7 @@ class SupabaseClient(object):
             data = [
                 row["j"]
                 for row in (
-                    self.supabase.table(STRINGS_TABLE)
+                    self.supabase.table(CONNECTIONS_TABLE)
                     .select(f"j")
                     .eq("i", thought_id)
                     .execute()
@@ -352,7 +352,7 @@ class SupabaseClient(object):
             data += [
                 row["i"]
                 for row in (
-                    self.supabase.table(STRINGS_TABLE)
+                    self.supabase.table(CONNECTIONS_TABLE)
                     .select(f"i")
                     .eq("j", thought_id)
                     .execute()
@@ -373,11 +373,11 @@ class SupabaseClient(object):
             print(f"String listing failed. {e}")
             return []
 
-    def add_string(self, thought_1: int, thought_2: int):
+    def connect_thought(self, thought_1: int, thought_2: int):
         insert = {"i": thought_1, "j": thought_2}
         try:
-            response = self.supabase.table(STRINGS_TABLE).insert(insert).execute()
-            # print(response)
+            response = self.supabase.table(CONNECTIONS_TABLE).insert(insert).execute()
+            print(response)
             return response.data[0]
         except Exception as e:
             print(f"String creation failed. {e}")
@@ -386,25 +386,56 @@ class SupabaseClient(object):
     def connect_many_thoughts(self, thought_1: int, thought_ids: List[int]):
         try:
             to_add = [{"i": thought_1, "j": thought_id} for thought_id in thought_ids]
-            response = self.supabase.table(STRINGS_TABLE).insert(to_add).execute()
+            response = self.supabase.table(CONNECTIONS_TABLE).insert(to_add).execute()
             # print(response)
             return response.data
         except Exception as e:
             print(f"String creation failed. {e}")
             return None
 
-    def delete_string(self, thought_1: int, thought_2: int):
+    def disconnect_thought(self, thought_1: int, thought_2: int):
         try:
             response = (
-                self.supabase.table(STRINGS_TABLE)
+                self.supabase.table(CONNECTIONS_TABLE)
                 .delete()
-                .or_(
-                    f"(i.eq.{thought_1} and j.eq.{thought_2}), (i.eq.{thought_2} and j.eq.{thought_1})"
-                )
+                .eq("i", thought_1)
+                .eq("j", thought_2)
                 .execute()
-            )
+            ).data
+
+            response += (
+                self.supabase.table(CONNECTIONS_TABLE)
+                .delete()
+                .eq("i", thought_2)
+                .eq("j", thought_1)
+                .execute()
+            ).data
             # print(response)
-            return response.data
+            return response
+        except Exception as e:
+            print(f"Failed to delete string. {e}")
+            return None
+
+    def disconnect_many_thoughts(self, thought_1: int, thought_ids: List[int]):
+        try:
+            response = (
+                self.supabase.table(CONNECTIONS_TABLE)
+                .delete()
+                .eq("i", thought_1)
+                .in_("j", thought_ids)
+                .execute()
+            ).data
+
+            response += (
+                self.supabase.table(CONNECTIONS_TABLE)
+                .delete()
+                .eq("j", thought_1)
+                .in_("i", thought_ids)
+                .execute()
+            ).data
+
+            # print(response)
+            return response
         except Exception as e:
             print(f"Failed to delete string. {e}")
             return None

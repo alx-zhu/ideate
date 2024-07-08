@@ -55,36 +55,18 @@ def profile_page():
 
     st.divider()
     st.markdown(f"### Your Stats")
-    row1 = st.columns(4)
+    row1 = st.columns(3)
     with row1[0]:
         with st.container(border=True):
             st.subheader(f"Streak")
             st.header(f"{info['streak']} :fire:")
     with row1[1]:
         with st.container(border=True):
+            st.subheader(f"Longest")
+            st.header(f"{info['best_streak']} :fire:")
+    with row1[2]:
+        with st.container(border=True):
             st.subheader(f"Thoughts")
             st.header(
                 f"{len(st.session_state.thoughts) if 'thoughts' in st.session_state else 0} :bulb:"
-            )
-    with row1[2]:
-        with st.container(border=True):
-            st.subheader(f"Posts")
-            st.header(
-                f"{len(st.session_state.your_posts) if 'your_posts' in st.session_state else 0} :pencil:"
-            )
-    with row1[3]:
-        with st.container(border=True):
-            st.subheader(f"Likes")
-            st.header(f"{total_likes} :heart:")
-
-    row2 = st.columns(4)
-    with row2[0]:
-        with st.container(border=True):
-            st.subheader(f"Longest")
-            st.header(f"{info['best_streak']} :fire:")
-    with row2[1]:
-        with st.container(border=True):
-            st.subheader(f"Topics")
-            st.header(
-                f"{len(st.session_state.topics) if 'topics' in st.session_state else 0} :thread:"
             )

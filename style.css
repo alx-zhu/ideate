@@ -1,0 +1,7 @@
+div[data-testid="stExpander"] details summary p{
+    font-size: 1rem;
+}
+
+/* [data-testid="stExpander"] details:hover summary{
+    background-color: rgba(150, 150, 150, 0.1);
+} */
