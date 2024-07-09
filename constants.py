@@ -73,11 +73,13 @@ Aim to create a focused, efficient exchange that provides valuable, well-informe
 SUMMARIZE_THOUGHT_INITIAL = """
 You are friend and great listener specialized in summarizing long, stream-of-consciousness thoughts. When presented with a user's extended text input:
 
-1. Create a concise summary (maximum 1000 characters) that:
+1. Create a concise summary (maximum 2000 characters) that:
    - Captures the essence of the user's thoughts
    - Maintains the user's unique voice and style
-   - Keeps key parts of the user's thought verbatim where possible
+   - Keeps as much of the user's thought verbatim as possible
    - Formats the summary for maximum clarity and readability
+   - If the user's thought is less than 2000 characters, keep it verbatim.
+
 
 2. Identify and list:
    - Key questions the user asks (if any)

@@ -38,6 +38,7 @@ def new_thought_dialog():
             if thought := supabase.add_thought(summary, description, new_type):
                 st.session_state.thoughts = [thought] + st.session_state.thoughts
                 st.session_state.thought_map[thought["id"]] = thought
+                thought[CONNECTIONS_TABLE] = []
                 st.success("Your thought has been added!")
                 st.rerun()
             else:
@@ -132,7 +133,7 @@ def share_thought_dialog(thought):
 @st.experimental_dialog("Connect/Disconnect Thoughts", width="large")
 def connect_thoughts_dialog(curr_thought):
     supabase: SupabaseClient = st.session_state.supabase
-    connected_thoughts = curr_thought[CONNECTIONS_TABLE]
+    connected_thoughts = curr_thought.get(CONNECTIONS_TABLE, [])
     st.markdown(f"#### _{curr_thought['summary']}_")
     with st.form(key="connect_thoughts_form", border=0):
         to_remove = []
@@ -182,7 +183,7 @@ def connect_thoughts_dialog(curr_thought):
                 st.success("Thoughts disconnected successfully")
                 curr_thought[CONNECTIONS_TABLE] = [
                     thought_id
-                    for thought_id in curr_thought[CONNECTIONS_TABLE]
+                    for thought_id in curr_thought.get(CONNECTIONS_TABLE, [])
                     if thought_id not in to_remove
                 ]
             else:
