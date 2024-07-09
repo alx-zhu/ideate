@@ -127,7 +127,6 @@ class ThoughtGraph(object):
         node_text = []
         node_colors = []
         node_symbols = []
-        print(G.nodes())
         for node in G.nodes():
             node_sizes.append(5 * G.degree(node) + 2)
             node_text.append(f"{node} - {G.nodes[node]['description']}")

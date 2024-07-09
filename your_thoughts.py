@@ -10,6 +10,7 @@ from constants import (
 )
 from supabase_client import SupabaseClient
 from chat_client import OpenAIChat
+from streamlit_mic_recorder import speech_to_text
 
 
 ################################################################################
@@ -189,6 +190,34 @@ def connect_thoughts_dialog(curr_thought):
         st.rerun()
 
 
+@st.experimental_dialog("Think Out Loud", width="large")
+def think_out_loud_dialog():
+    st.markdown(
+        "### Just write down or record your stream of consciousness, and we'll help you organize it into thoughts!"
+    )
+    transcribed = speech_to_text(
+        language="en",
+        start_prompt="🔴 Record Audio",
+        stop_prompt="🛑 Stop Recording",
+        just_once=False,
+        use_container_width=False,
+        callback=None,
+        key="thought_recording",
+    )
+    with st.form(key="thought_form"):
+        thought_text = st.text_area(
+            "Your thoughts:", value=transcribed if transcribed else ""
+        )
+        submit_button = st.form_submit_button("Submit")
+    if submit_button:
+        if thought_text:
+            st.session_state.chat.summarize_thought(thought_text)
+            st.success("Your thoughts have been organized!")
+            st.rerun()
+        else:
+            st.error("Please make sure all fields are filled out.")
+
+
 ################################################################################
 ################################ IDEATION PAGE #################################
 ################################################################################
@@ -210,14 +239,33 @@ def sort_thoughts_by_date():
 
 def thought_page():
     supabase: SupabaseClient = st.session_state.supabase
+    chat: OpenAIChat = st.session_state.chat
 
     # Initialize session state to store thoughts
     if "thoughts" not in st.session_state:
         st.session_state.thoughts = supabase.list_thoughts(st.session_state.user_id)
 
-    # Display all thoughts
-    if st.button("Add Thoughts", use_container_width=True, type="primary"):
-        new_thought_dialog()
+    button_l, button_r, button_edge = st.columns((5, 5, 1))
+
+    with button_l:
+        # Display all thoughts
+        if st.button("Add a Thought", use_container_width=True, type="primary"):
+            new_thought_dialog()
+
+    with button_r:
+        if st.button(
+            "Stream of Consciousness", use_container_width=True, type="primary"
+        ):
+            think_out_loud_dialog()
+    with button_edge:
+        if st.button(
+            "💬",
+            use_container_width=True,
+            type="primary",
+            help="Have an open-ended conversation with the AI.",
+        ):
+            chat.initialize_general_chat()
+            chat.open_chat()
 
     # st.divider()
     if st.session_state.thoughts:
@@ -265,8 +313,8 @@ def thought_page():
                         use_container_width=True,
                         help="Explore this thought in an AI chat!",
                     ):
-                        st.session_state.chat.initialize_thought_chat(thought)
-                        st.session_state.chat.open_chat()
+                        chat.initialize_thought_chat(thought)
+                        chat.open_chat()
 
             count += len(thoughts_by_date[date])
 

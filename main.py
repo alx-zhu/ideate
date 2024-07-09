@@ -21,34 +21,32 @@ if __name__ == "__main__":
 
     supabase: SupabaseClient = st.session_state.supabase
 
-    home_page()
+    if "page" not in st.session_state:
+        st.session_state.page = "Login/Sign Up"
+    if "user_id" in st.session_state and st.session_state.user_id:
+        home_page()
 
-    # if "page" not in st.session_state:
-    #     st.session_state.page = "Login/Sign Up"
-    # if "user_id" in st.session_state and st.session_state.user_id:
-    #     # home_page()
+        # with st.sidebar:
+        #     st.selectbox(
+        #         "Navigation",
+        #         [HOME_PAGE, FEED_PAGE, ABOUT_PAGE],
+        #         key="page",
+        #     )
 
-    #     with st.sidebar:
-    #         st.selectbox(
-    #             "Navigation",
-    #             [HOME_PAGE, FEED_PAGE, ABOUT_PAGE],
-    #             key="page",
-    #         )
+        # if st.session_state.page == HOME_PAGE:
+        #     home_page()
+        # elif st.session_state.page == ABOUT_PAGE:
+        #     about_page()
 
-    #     if st.session_state.page == HOME_PAGE:
-    #         home_page()
-    #     elif st.session_state.page == ABOUT_PAGE:
-    #         about_page()
-
-    # else:
-    #     with st.sidebar:
-    #         st.selectbox(
-    #             "Navigation",
-    #             ["Login/Sign Up", ABOUT_PAGE],
-    #             key="page",
-    #             index=0,
-    #         )
-    #     if st.session_state.page == "Login/Sign Up":
-    #         authentication_page()
-    #     elif st.session_state.page == ABOUT_PAGE:
-    #         about_page()
+    else:
+        with st.sidebar:
+            st.selectbox(
+                "Navigation",
+                ["Login/Sign Up", ABOUT_PAGE],
+                key="page",
+                index=0,
+            )
+        if st.session_state.page == "Login/Sign Up":
+            authentication_page()
+        elif st.session_state.page == ABOUT_PAGE:
+            about_page()
