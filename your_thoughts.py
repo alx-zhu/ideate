@@ -297,12 +297,12 @@ def thought_page():
                                 edit_thought_dialog(thought)
                         st.markdown(f"{thought['description']}")
 
-                        if st.button(
-                            "Connect to Other Thoughts",
-                            key=f"connect_{i}",
-                            use_container_width=True,
-                        ):
-                            connect_thoughts_dialog(thought)
+                        # if st.button(
+                        #     "Connect to Other Thoughts",
+                        #     key=f"connect_{i}",
+                        #     use_container_width=True,
+                        # ):
+                        #     connect_thoughts_dialog(thought)
                         # l, r = st.columns(2)
                         # with l:
                         #

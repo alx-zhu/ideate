@@ -24,12 +24,12 @@ def home_page():
     else:
         [
             your_thoughts_page,
-            your_graph_page,
+            # your_graph_page,
             your_profile_page,
         ] = st.tabs(
             [
                 "Your Thoughts",
-                "Your Thought Graph",
+                # "Your Thought Graph",
                 "Profile",
             ]
         )
@@ -37,8 +37,8 @@ def home_page():
         with your_profile_page:
             profile_page()
 
-        with your_graph_page:
-            graph_page()
+        # with your_graph_page:
+        #     graph_page()
 
         with your_thoughts_page:
             thought_page()
