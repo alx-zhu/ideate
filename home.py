@@ -2,7 +2,6 @@ import streamlit as st
 from supabase_client import SupabaseClient
 from your_thoughts import thought_page
 from your_profile import profile_page
-from your_graph import graph_page
 from chat_client import OpenAIChat
 from constants import CONNECTIONS_TABLE
 
