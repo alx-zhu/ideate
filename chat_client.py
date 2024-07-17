@@ -2,7 +2,13 @@ import json
 import time
 import streamlit as st
 from openai import OpenAI
-from constants import OPENAI_INITIAL_CONVERSATION, SUMMARIZE_THOUGHT_INITIAL
+from constants import (
+    OPENAI_INITIAL_CONVERSATION,
+    SEARCH_INITIAL,
+    SUGGESTIONS_ALT_INITIAL,
+    SUGGESTIONS_INITIAL,
+    SUMMARIZE_THOUGHT_INITIAL,
+)
 from supabase_client import SupabaseClient
 from constants import DESCRIPTION_MAX, SUMMARY_MAX, THOUGHT_TYPES, CHAT_WELCOME_MESSAGE
 
@@ -36,6 +42,7 @@ class OpenAIChat(object):
 
     def initialize_thought_chat(self, thought):
         self.thought = thought
+        st.session_state.supabase.interact_with_thought(thought)
         self.gpt_conversation = OPENAI_INITIAL_CONVERSATION
         self.display_conversation = []
         initial_prompt = f"Great! Let's have a conversation about your {thought['type']}:\n*{thought['summary']}*\n\n How would you like to start?"
@@ -59,7 +66,7 @@ class OpenAIChat(object):
 
     def summarize_thought(self, thought_text):
         completion = self.open_ai.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             response_format={"type": "json_object"},
             messages=[
                 {
@@ -75,7 +82,6 @@ class OpenAIChat(object):
 
         response = completion.choices[0].message.content
         obj = json.loads(response)
-        print(obj)
         summary: str = obj["one_line"]
         description: str = obj["thought_summary"]
         questions: list = obj["questions"]
@@ -134,6 +140,66 @@ class OpenAIChat(object):
             st.error("Error. Thought could not be added.")
         return thought
 
+    def search_for_thoughts(self, search_query):
+        # print(search_query)
+        thoughts = [
+            {
+                "id": thought["id"],
+                "summary": thought["summary"],
+                "description": thought["description"],
+            }
+            for thought in st.session_state.thoughts
+        ]
+        completion = self.open_ai.chat.completions.create(
+            model="gpt-4o",
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": SEARCH_INITIAL,
+                },
+                {
+                    "role": "user",
+                    "content": f"These are the thoughts: {thoughts}",
+                },
+                {
+                    "role": "user",
+                    "content": f"Search query: {search_query}",
+                },
+            ],
+        )
+        response = completion.choices[0].message.content
+        id_list = json.loads(response)
+        return id_list["ids"]
+
+    def suggest_thoughts(self):
+        thoughts = [
+            {
+                "id": thought["id"],
+                "summary": thought["summary"],
+                "description": thought["description"],
+            }
+            for thought in st.session_state.thoughts
+        ]
+        completion = self.open_ai.chat.completions.create(
+            model="gpt-4o",
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": SUGGESTIONS_ALT_INITIAL,
+                },
+                {
+                    "role": "user",
+                    "content": f"These are the thoughts: {thoughts}",
+                },
+            ],
+        )
+        response = completion.choices[0].message.content
+        obj = json.loads(response)
+        print(obj)
+        return obj
+
     def open_chat(self):
         st.session_state.chat_open = True
         st.rerun()
@@ -180,7 +246,7 @@ class OpenAIChat(object):
     def save_thought_with_ai(self, chat_message):
         supabase = st.session_state.supabase
         completion = self.open_ai.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -252,7 +318,7 @@ class OpenAIChat(object):
                         with st.spinner("Thinking..."):
                             # Send message to Open AI
                             completion = self.open_ai.chat.completions.create(
-                                model="gpt-3.5-turbo",
+                                model="gpt-4o",
                                 messages=self.gpt_conversation,
                             )
 

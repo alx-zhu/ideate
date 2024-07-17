@@ -1,6 +1,7 @@
 __pycache__
 .env
 secrets.toml
+config.toml
 .venv
 .venv/**
 *.pdf

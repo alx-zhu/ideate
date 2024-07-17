@@ -1,6 +1,7 @@
 from typing import List
 import streamlit as st
 from supabase import create_client, Client
+from datetime import datetime
 from constants import (
     TOPIC_THOUGHTS_TABLE,
     THOUGHTS_TABLE,
@@ -67,6 +68,13 @@ class SupabaseClient(object):
         except Exception as e:
             print(f"Failed to get user: {e}")
             return None, e
+
+    def sign_in_with_google(self):
+        self.supabase.auth.sign_in_with_oauth(
+            {
+                "provider": "google",
+            }
+        )
 
     ################################################################################
     #################################### USER ######################################
@@ -171,9 +179,12 @@ class SupabaseClient(object):
             return []
 
     def update_thought(
-        self, thought_id: int, new_summary: str, new_description: str, new_type: str
+        self, thought, new_summary: str, new_description: str, new_type: str
     ):
+        now = datetime.now().isoformat()
         try:
+            interactions = thought["interactions"]
+            thought_id = thought["id"]
             response = (
                 self.supabase.table(THOUGHTS_TABLE)
                 .update(
@@ -181,6 +192,8 @@ class SupabaseClient(object):
                         "summary": new_summary.strip(),
                         "description": new_description.strip(),
                         "type": new_type,
+                        "interactions": interactions + 1,
+                        "last_interaction": now,
                     }
                 )
                 .eq("id", thought_id)
@@ -190,6 +203,23 @@ class SupabaseClient(object):
             return response.data
         except Exception as e:
             print(f"Error updating thought {e}.")
+            return None
+
+    def interact_with_thought(self, thought):
+        try:
+            thought_id = thought["id"]
+            interactions = thought["interactions"]
+            now = datetime.now().isoformat()
+            response = (
+                self.supabase.table(THOUGHTS_TABLE)
+                .update({"interactions": interactions + 1, "last_interaction": now})
+                .eq("id", thought_id)
+                .execute()
+            )
+            print(response)
+            return response.data
+        except Exception as e:
+            print(f"Thought interaction failed. {e}")
             return None
 
     ################################################################################
@@ -377,7 +407,7 @@ class SupabaseClient(object):
         insert = {"i": thought_1, "j": thought_2}
         try:
             response = self.supabase.table(CONNECTIONS_TABLE).insert(insert).execute()
-            print(response)
+            # print(response)
             return response.data[0]
         except Exception as e:
             print(f"String creation failed. {e}")

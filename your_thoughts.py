@@ -75,11 +75,15 @@ def edit_thought_dialog(thought):
     if submit_button:
         if new_summary and new_description:
             if st.session_state.supabase.update_thought(
-                thought["id"], new_summary, new_description, new_type
+                thought,
+                new_summary,
+                new_description,
+                new_type,
             ):
                 thought["summary"] = new_summary
                 thought["description"] = new_description
                 thought["type"] = new_type
+                thought["interactions"] += 1
                 st.success("Your thought has been updated!")
                 st.rerun()
             else:
@@ -254,9 +258,7 @@ def thought_page():
             new_thought_dialog()
 
     with button_r:
-        if st.button(
-            "Stream of Consciousness", use_container_width=True, type="primary"
-        ):
+        if st.button("Think Out Loud", use_container_width=True, type="primary"):
             think_out_loud_dialog()
     with button_edge:
         if st.button(
@@ -275,49 +277,54 @@ def thought_page():
         for date in sorted(thoughts_by_date.keys(), reverse=True):
             st.header(date.strftime("%B %d, %Y"))
             for i, thought in enumerate(thoughts_by_date[date], start=count):
-
-                # for i, thought in enumerate(st.session_state.thoughts):
-                l, r = st.columns((10, 1))
-                with l:
-                    with st.expander(
-                        f"{pick_type_icon(thought['type'])} {thought['summary']}"
-                    ):
-                        # st.markdown(f"#### {pick_type_icon(thought['type'])} {thought['summary']}")
-                        l1, r1 = st.columns((5, 1))
-                        with l1:
-                            st.markdown(
-                                f"#### **_[{extract_date(thought['created_at'])}]_**"
-                            )
-                        with r1:
-                            if st.button(
-                                "Edit",
-                                key=f"edit_{i}",
-                                use_container_width=True,
-                            ):
-                                edit_thought_dialog(thought)
-                        st.markdown(f"{thought['description']}")
-
-                        # if st.button(
-                        #     "Connect to Other Thoughts",
-                        #     key=f"connect_{i}",
-                        #     use_container_width=True,
-                        # ):
-                        #     connect_thoughts_dialog(thought)
-                        # l, r = st.columns(2)
-                        # with l:
-                        #
-                        # with r:
-                with r:
-                    if st.button(
-                        "💬",
-                        key=f"chat_{i}",
-                        use_container_width=True,
-                        help="Explore this thought in an AI chat!",
-                    ):
-                        chat.initialize_thought_chat(thought)
-                        chat.open_chat()
+                thought_component(i, thought)
 
             count += len(thoughts_by_date[date])
 
     else:
         st.write("No thoughts yet. Start adding your thoughts!")
+
+
+def thought_component(i, thought, key=""):
+    chat: OpenAIChat = st.session_state.chat
+    l, r = st.columns((10, 1))
+    with l:
+        with st.expander(f"{pick_type_icon(thought['type'])} {thought['summary']}"):
+            l1, edit, delete = st.columns((5, 1, 1))
+            with l1:
+                st.markdown(f"#### **_[{extract_date(thought['created_at'])}]_**")
+            with edit:
+                if st.button(
+                    "Edit",
+                    key=f"{key}_edit_{i}",
+                    use_container_width=True,
+                ):
+                    edit_thought_dialog(thought)
+            with delete:
+                if st.button(
+                    "Delete",
+                    key=f"{key}_delete_{i}",
+                    use_container_width=True,
+                ):
+                    delete_dialog(i)
+            st.markdown(f"{thought['description']}")
+
+            # if st.button(
+            #     "Connect to Other Thoughts",
+            #     key=f"connect_{i}",
+            #     use_container_width=True,
+            # ):
+            #     connect_thoughts_dialog(thought)
+            # l, r = st.columns(2)
+            # with l:
+            #
+            # with r:
+    with r:
+        if st.button(
+            "💬",
+            key=f"{key}_chat_{i}",
+            use_container_width=True,
+            help="Explore this thought in an AI chat!",
+        ):
+            chat.initialize_thought_chat(thought)
+            chat.open_chat()

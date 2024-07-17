@@ -1,4 +1,6 @@
 import streamlit as st
+from search import search_page
+from suggestions import suggestions_page
 from supabase_client import SupabaseClient
 from your_thoughts import thought_page
 from your_profile import profile_page
@@ -22,22 +24,28 @@ def home_page():
 
     else:
         [
+            your_suggestions_page,
+            your_search_page,
             your_thoughts_page,
-            # your_graph_page,
             your_profile_page,
         ] = st.tabs(
             [
-                "Your Thoughts",
+                "Suggestions",
+                "Search Thoughts",
+                "All Thoughts",
                 # "Your Thought Graph",
                 "Profile",
             ]
         )
 
+        with your_suggestions_page:
+            suggestions_page()
+
+        with your_search_page:
+            search_page()
+
         with your_profile_page:
             profile_page()
-
-        # with your_graph_page:
-        #     graph_page()
 
         with your_thoughts_page:
             thought_page()
@@ -72,6 +80,7 @@ def initialize():
         st.session_state.thought_map = {
             thought["id"]: thought for thought in st.session_state.thoughts
         }
+        st.session_state.display_thoughts = st.session_state.thoughts
     if "your_posts" not in st.session_state:
         st.session_state.your_posts = supabase.list_user_posts(st.session_state.user_id)
     if "user_info" not in st.session_state:

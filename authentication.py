@@ -46,3 +46,5 @@ def authentication_page():
                     st.rerun()
                 else:
                     st.error("Sign Up Failed.")
+            else:
+                st.error("Passwords do not match.")
