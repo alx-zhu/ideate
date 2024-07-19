@@ -5,3 +5,5 @@ config.toml
 .venv
 .venv/**
 *.pdf
+.testing/**
+_**

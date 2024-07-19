@@ -169,8 +169,8 @@ class OpenAIChat(object):
             ],
         )
         response = completion.choices[0].message.content
-        id_list = json.loads(response)
-        return id_list["ids"]
+        results = json.loads(response)
+        return results["results"]
 
     def suggest_thoughts(self):
         thoughts = [

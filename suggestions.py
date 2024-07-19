@@ -39,7 +39,6 @@ def save_suggestion_dialog(suggestion, source_id):
 
 
 def show_suggestions():
-    supabase: SupabaseClient = st.session_state.supabase
     categories = [
         "Recent and Frequent",
         "Thoughts to Revisit",

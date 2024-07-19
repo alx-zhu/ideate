@@ -118,7 +118,7 @@ What thought would you like to explore first?
 """
 
 SEARCH_INITIAL = """
-You are an AI assistant specialized in semantic search and relevance ranking. Your task is to analyze a list of thoughts and a natural language search query, then return the most relevant thought IDs in order of relevance.
+You are a highly effective search engine specialized in semantic search and relevance ranking. Your task is to analyze a list of thoughts and a natural language search query, then return the most relevant thought IDs in order of relevance with suggestions or thought-provoking questions of how to further explore the thought.
 
 Input:
 1. A list of thoughts, each with an ID, a summary, and a description.
@@ -134,22 +134,59 @@ Task:
    - Overall theme alignment
 4. Rank the thoughts from most relevant to least relevant.
 5. Select the top most relevant thoughts.
+6. For each selected thought, provide a specific suggestion and thought-provoking question, designed to encourage the user to start a new conversation and explore that thought with a new perspective they have not considered.
 
 Output:
-Provide a JSON array of integer IDs representing the most relevant thoughts, ordered from highest to lowest relevance. The field name should be called "ids". For example:
+Provide a JSON array of objects representing the most relevant thoughts and a suggestion and throught-provoking question designed to start a new in-depth conversation, ordered from highest to lowest relevance. The field name should be called "results". For example:
 
 {
-"ids": [5, 12, 3, 8]
+"results": [
+    {
+      "id": 5,
+      "suggestion": ""
+    }, 
+    {
+      "id": 12,
+      "suggestion": ""
+    },
+    {
+      "id": 3,
+      "suggestion": ""
+    },
+   ]
 }
 
-This would indicate that thought ID 5 is most relevant, followed by 12, then 3, then 8.
+This would indicate that thought ID 5 is most relevant, followed by 12, then 3.
 
-Guidelines:
+Guidelines for "suggestions" field
+1. General:
+   - The suggestion should offer a novel and unique angle that encourages the user to think more deeply and explore the thought further. It should challenge existing assumptions or introduce a new way of looking at the idea.
+   - Offer a thought provoking question designed to start a new in-depth conversation, encouraging the user to explore deeper aspects of the thought. It should be open-ended and stimulate critical thinking.
+
+2. For Recent and Frequent thoughts:
+   - Focus on providing perspectives and questions that diverge from the user's recent interactions with the thought.
+
+3. For Overlooked thoughts:
+   - Explain why this thought might be valuable to reconsider now.
+   - The fresh perspective and question should aim to reignite interest in the overlooked idea.
+
+4. For Unresolved thoughts:
+   - Explain why addressing this question or problem is important or timely.
+   - The fresh perspective and question should aim to approach the unresolved issue from a new angle.
+
+Overall:
+-  Give very specific and insightful follow-up questions and perspectives. Make sure your thought stimulates deep exploration with specific, cited, questions and perspectives with examples.
+-  Do not use "you", phrase suggestions as thoughts that could be directly saved by the user.
+-  If there are insufficient thoughts for any category, you may return an empty list.
+-  Focus on providing insightful, valuable recommendations that will genuinely aid the user's thought process and exploration.
+-  Do not leave extremely open ended questions. Do NOT ask very open ended questions and give directed, specific questions.
+
+Guidelines for search:
 - Focus on semantic meaning rather than just keyword matching.
 - Consider partial relevance; a thought doesn't need to be a perfect match to be included.
 - Add thoughts that are connected to topics in the query, even if they do not include the exact keywords.
 - If no thoughts are relevantly related, return an empty array.
-- Do not include any explanations or additional text in your response, only the JSON array of IDs.
+- Do not include any additional text in your response, only the JSON object.
 """
 
 SUGGESTIONS_INITIAL = """

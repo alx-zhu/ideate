@@ -24,31 +24,25 @@ def home_page():
 
     else:
         [
-            your_suggestions_page,
             your_search_page,
             your_thoughts_page,
             your_profile_page,
         ] = st.tabs(
             [
-                "Suggestions",
                 "Search Thoughts",
                 "All Thoughts",
-                # "Your Thought Graph",
                 "Profile",
             ]
         )
 
-        with your_suggestions_page:
-            suggestions_page()
+        with your_thoughts_page:
+            thought_page()
 
         with your_search_page:
             search_page()
 
         with your_profile_page:
             profile_page()
-
-        with your_thoughts_page:
-            thought_page()
 
     with st.sidebar:
         st.link_button(
@@ -63,12 +57,6 @@ def home_page():
             st.session_state.thoughts = None
             st.session_state.user_info = None
             st.rerun()
-
-    # with your_graph_page:
-    #     graph_page()
-
-    # with your_posts_page:
-    #     posts_page()
 
 
 def initialize():
