@@ -5,3 +5,4 @@ networkx==3.3
 streamlit-mic-recorder==0.0.8
 plotly==5.22.0
 numpy==1.26.4
+streamlit-extras==0.4.3

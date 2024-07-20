@@ -222,6 +222,32 @@ class SupabaseClient(object):
             print(f"Thought interaction failed. {e}")
             return None
 
+    def bookmark_thought(self, thought_id: int):
+        try:
+            response = (
+                self.supabase.table(THOUGHTS_TABLE)
+                .update({"bookmarked": True})
+                .eq("id", thought_id)
+                .execute()
+            )
+            return response.data
+        except Exception as e:
+            print(f"Thought bookmark failed. {e}")
+            return None
+
+    def unbookmark_thought(self, thought_id: int, user_id: str):
+        try:
+            response = (
+                self.supabase.table(THOUGHTS_TABLE)
+                .update({"bookmarked": False})
+                .eq("id", thought_id)
+                .execute()
+            )
+            return response.data
+        except Exception as e:
+            print(f"Thought unbookmark failed. {e}")
+            return None
+
     ################################################################################
     ################################### POSTS ######################################
     ################################################################################

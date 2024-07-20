@@ -72,6 +72,11 @@ def search_page():
     if "search_query" in st.session_state and st.session_state.search_query:
         st.divider()
         st.markdown(f"#### Search Results for _'{st.session_state.search_query}'_")
+        if not st.session_state.search_results:
+            st.warning(
+                "No thoughts found. Add more thoughts to improve the search results!"
+            )
+
         for i, result in enumerate(st.session_state.search_results):
             thought_id = result["id"]
             suggestion = result["suggestion"]
