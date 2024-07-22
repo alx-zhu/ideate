@@ -11,7 +11,7 @@ HOME_PAGE = "Home"
 FEED_PAGE = "Feed"
 ABOUT_PAGE = "About"
 LOGIN_PAGE = "Login/Sign Up"
-THOUGHT_TYPES = ["problem", "question", "thought", "solution", "undefined"]
+THOUGHT_TYPES = ["problem", "question", "thought", "solution", "success"]
 
 OPENAI_INITIAL_CONVERSATION = [
     {
@@ -290,7 +290,7 @@ def pick_type_icon(thought_type):
         return "💭"
     elif thought_type == "solution":
         return "💡"
-    elif thought_type == "undefined":
-        return "🟥"
+    elif thought_type == "success":
+        return "🎉"
     else:
         return "🤔"

@@ -35,11 +35,11 @@ def home_page():
             ]
         )
 
-        with your_thoughts_page:
-            thought_page()
-
         with your_search_page:
             search_page()
+
+        with your_thoughts_page:
+            thought_page()
 
         with your_profile_page:
             profile_page()

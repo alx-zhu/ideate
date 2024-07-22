@@ -260,6 +260,7 @@ def thought_page():
     with button_r:
         if st.button("Think Out Loud", use_container_width=True, type="primary"):
             think_out_loud_dialog()
+
     with button_edge:
         if st.button(
             "💬",
