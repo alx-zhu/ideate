@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
 import plotly.graph_objects as go
-from constants import CONNECTIONS_TABLE, pick_type_icon
+from app.constants import CONNECTIONS_TABLE, pick_type_icon
 import streamlit as st
 
 

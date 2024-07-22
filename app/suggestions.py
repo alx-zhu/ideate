@@ -1,9 +1,9 @@
 import streamlit as st
 
-from chat_client import OpenAIChat
-from constants import CONNECTIONS_TABLE, SUMMARY_MAX, THOUGHT_TYPES
-from supabase_client import SupabaseClient
-from your_thoughts import (
+from app.chat_client import OpenAIChat
+from app.constants import CONNECTIONS_TABLE, SUMMARY_MAX, THOUGHT_TYPES
+from app.supabase_client import SupabaseClient
+from app.your_thoughts import (
     thought_component,
 )
 

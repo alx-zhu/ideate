@@ -1,11 +1,11 @@
 import streamlit as st
-from search import search_page
-from suggestions import suggestions_page
-from supabase_client import SupabaseClient
-from your_thoughts import thought_page
-from your_profile import profile_page
-from chat_client import OpenAIChat
-from constants import CONNECTIONS_TABLE
+from app.search import search_page
+from app.suggestions import suggestions_page
+from app.supabase_client import SupabaseClient
+from app.your_thoughts import thought_page
+from app.your_profile import profile_page
+from app.chat_client import OpenAIChat
+from app.constants import CONNECTIONS_TABLE
 
 
 def home_page():

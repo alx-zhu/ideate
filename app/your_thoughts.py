@@ -1,15 +1,15 @@
 from collections import defaultdict
 import datetime
 import streamlit as st
-from constants import (
+from app.constants import (
     CONNECTIONS_TABLE,
     SUMMARY_MAX,
     DESCRIPTION_MAX,
     THOUGHT_TYPES,
     pick_type_icon,
 )
-from supabase_client import SupabaseClient
-from chat_client import OpenAIChat
+from app.supabase_client import SupabaseClient
+from app.chat_client import OpenAIChat
 from streamlit_mic_recorder import speech_to_text
 
 

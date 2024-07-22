@@ -1,15 +1,22 @@
 import streamlit as st
-from supabase_client import SupabaseClient
+from app.supabase_client import SupabaseClient
+from demo.demo import demo_page
 
 
 def authentication_page():
     supabase: SupabaseClient = st.session_state.supabase
-    st.info(
-        "Hi! Welcome to String Theories! This is my first prototype, so I'd love to hear your feedback. Please feel free to reach out to me at alexanderzhu07 [at] gmail [dot] com. Thanks for checking it out!\n\n I'd love to connect!\n - [LinkedIn](https://www.linkedin.com/in/zhu-alexander/),\n - [Github](https://github.com/alx-zhu),\n - Email: alexanderzhu07 [at] gmail [dot] com."
+    # st.info(
+    #     "Hi! Welcome to String Theories! This is my first prototype, so I'd love to hear your feedback. Please feel free to reach out to me at alexanderzhu07 [at] gmail [dot] com. Thanks for checking it out!\n\n I'd love to connect!\n - [LinkedIn](https://www.linkedin.com/in/zhu-alexander/),\n - [Github](https://github.com/alx-zhu),\n - Email: alexanderzhu07 [at] gmail [dot] com."
+    # )
+    st.warning(
+        "Please note: thoughts created in the demo do not persist between sessions and are not saved to the database. Sign up to create your account and save your thoughts!"
     )
-    tabs = st.tabs(["Login", "Sign Up"])
+    [try_it, login, signup] = st.tabs(["Try it Out", "Login", "Sign Up"])
 
-    with tabs[0]:
+    with try_it:
+        demo_page()
+
+    with login:
         st.subheader("Login")
         with st.form("login_form", border=0):
             login_email = st.text_input("Email", key="login_email")
@@ -26,7 +33,7 @@ def authentication_page():
             else:
                 st.error(f"Login failed.")
 
-    with tabs[1]:
+    with signup:
         st.subheader("Sign Up")
         with st.form("signup_form", border=0):
             l, r = st.columns(2)
@@ -64,6 +71,3 @@ def authentication_page():
                         st.error("Sign Up Failed.")
                 else:
                     st.error("Passwords do not match.")
-
-        if st.button("Sign in with Google"):
-            supabase.supabase.auth.sign_in_with_oauth({"provider": "google"})

@@ -2,7 +2,7 @@ from typing import List
 import streamlit as st
 from supabase import create_client, Client
 from datetime import datetime
-from constants import (
+from app.constants import (
     TOPIC_THOUGHTS_TABLE,
     THOUGHTS_TABLE,
     POSTS_TABLE,

@@ -1,6 +1,6 @@
 import streamlit as st
-from constants import DESCRIPTION_MAX, THOUGHTS_TABLE, SUMMARY_MAX
-from supabase_client import SupabaseClient
+from app.constants import DESCRIPTION_MAX, THOUGHTS_TABLE, SUMMARY_MAX
+from app.supabase_client import SupabaseClient
 
 
 @st.experimental_dialog("Edit Topic", width="large")

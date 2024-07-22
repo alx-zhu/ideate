@@ -1,6 +1,6 @@
 import streamlit as st
-from constants import SUMMARY_MAX, DESCRIPTION_MAX
-from supabase_client import SupabaseClient
+from app.constants import SUMMARY_MAX, DESCRIPTION_MAX
+from app.supabase_client import SupabaseClient
 
 
 def save_profile(info):

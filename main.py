@@ -1,10 +1,9 @@
 import streamlit as st
-from about import about_page
-from constants import ABOUT_PAGE, FEED_PAGE, HOME_PAGE
-from feed import feed_page
-from home import home_page
-from authentication import authentication_page
-from supabase_client import SupabaseClient
+from app.about import about_page
+from app.constants import ABOUT_PAGE
+from app.home import home_page
+from app.authentication import authentication_page
+from app.supabase_client import SupabaseClient
 
 
 def local_css(file_name):

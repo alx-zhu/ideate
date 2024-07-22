@@ -1,16 +1,17 @@
+from datetime import datetime
 import json
 import time
 import streamlit as st
 from openai import OpenAI
-from constants import (
+from app.constants import (
     OPENAI_INITIAL_CONVERSATION,
     SEARCH_INITIAL,
     SUGGESTIONS_ALT_INITIAL,
-    SUGGESTIONS_INITIAL,
     SUMMARIZE_THOUGHT_INITIAL,
+    SUMMARY_MAX,
+    THOUGHT_TYPES,
+    CHAT_WELCOME_MESSAGE,
 )
-from supabase_client import SupabaseClient
-from constants import DESCRIPTION_MAX, SUMMARY_MAX, THOUGHT_TYPES, CHAT_WELCOME_MESSAGE
 
 
 @st.cache_resource()
@@ -18,7 +19,7 @@ def get_cached_open_ai_client():
     return OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
-class OpenAIChat(object):
+class DemoChat(object):
     def __init__(self, thought=None):
         self.open_ai = get_cached_open_ai_client()
         self.gpt_conversation = []
@@ -42,7 +43,6 @@ class OpenAIChat(object):
 
     def initialize_thought_chat(self, thought):
         self.thought = thought
-        st.session_state.supabase.interact_with_thought(thought)
         self.gpt_conversation = OPENAI_INITIAL_CONVERSATION
         self.display_conversation = []
         initial_prompt = f"Great! Let's have a conversation about your {thought['type']}:\n*{thought['summary']}*\n\n How would you like to start?"
@@ -79,6 +79,7 @@ class OpenAIChat(object):
                 },
             ],
         )
+        self.message_count += 1
 
         response = completion.choices[0].message.content
         obj = json.loads(response)
@@ -87,69 +88,60 @@ class OpenAIChat(object):
         questions: list = obj["questions"]
         problems: list = obj["problems"]
         solutions: list = obj["solutions"]
-        if thought := st.session_state.supabase.add_thought(
-            summary, description, "thought"
-        ):
-            st.session_state.thoughts = [thought] + st.session_state.thoughts
-            st.session_state.thought_map[thought["id"]] = thought
-            thought["connections"] = []
-            st.success("Your thought has been added!")
-            for question in questions:
-                if question_thought := st.session_state.supabase.add_thought(
-                    question, question, "question"
-                ):
-                    st.session_state.thoughts = [
-                        question_thought
-                    ] + st.session_state.thoughts
-                    st.session_state.thought_map[question_thought["id"]] = (
-                        question_thought
-                    )
-                    st.session_state.supabase.connect_thought(
-                        thought["id"], question_thought["id"]
-                    )
-                    thought["connections"].append(question_thought["id"])
-            for problem in problems:
-                if problem_thought := st.session_state.supabase.add_thought(
-                    problem, problem, "problem"
-                ):
-                    st.session_state.thoughts = [
-                        problem_thought
-                    ] + st.session_state.thoughts
-                    st.session_state.thought_map[problem_thought["id"]] = (
-                        problem_thought
-                    )
-                    st.session_state.supabase.connect_thought(
-                        thought["id"], problem_thought["id"]
-                    )
-                    thought["connections"].append(problem_thought["id"])
-            for solution in solutions:
-                if solution_thought := st.session_state.supabase.add_thought(
-                    solution, solution, "solution"
-                ):
-                    st.session_state.thoughts = [
-                        solution_thought
-                    ] + st.session_state.thoughts
-                    st.session_state.thought_map[solution_thought["id"]] = (
-                        solution_thought
-                    )
-                    st.session_state.supabase.connect_thought(
-                        thought["id"], solution_thought["id"]
-                    )
-                    thought["connections"].append(solution_thought["id"])
-        else:
-            st.error("Error. Thought could not be added.")
+        thought = {
+            "type": "thought",
+            "summary": summary,
+            "description": description,
+            "id": len(st.session_state.demo_thoughts),
+            "created_at": datetime.now().isoformat(),
+        }
+        st.session_state.demo_thoughts = [thought] + st.session_state.demo_thoughts
+        st.session_state.demo_thought_map[thought["id"]] = thought
+        thought["connections"] = []
+        st.success("Your thought has been added!")
+        for question in questions:
+            question_thought = {
+                "type": "question",
+                "summary": question,
+                "description": question,
+                "id": len(st.session_state.demo_thoughts),
+                "created_at": datetime.now().isoformat(),
+            }
+            st.session_state.demo_thoughts = [
+                question_thought
+            ] + st.session_state.demo_thoughts
+            st.session_state.demo_thought_map[question_thought["id"]] = question_thought
+
+        for problem in problems:
+            problem_thought = {
+                "type": "problem",
+                "summary": problem,
+                "description": problem,
+                "id": len(st.session_state.demo_thoughts),
+                "created_at": datetime.now().isoformat(),
+            }
+            st.session_state.demo_thoughts = [
+                problem_thought
+            ] + st.session_state.demo_thoughts
+            st.session_state.demo_thought_map[problem_thought["id"]] = problem_thought
+
+        for solution in solutions:
+            solution_thought = {
+                "type": "solution",
+                "summary": solution,
+                "description": solution,
+                "id": len(st.session_state.demo_thoughts),
+                "created_at": datetime.now().isoformat(),
+            }
+            st.session_state.demo_thoughts = [
+                solution_thought
+            ] + st.session_state.demo_thoughts
+            st.session_state.demo_thought_map[solution_thought["id"]] = solution_thought
+
         return thought
 
     def search_for_thoughts(self, search_query):
-        # print(search_query)
-        thoughts = [
-            {
-                "id": thought["id"],
-                "summary": thought["summary"],
-                "description": thought["description"],
-            }
-            for thought in st.session_state.thoughts
-        ]
+        thoughts = st.session_state.demo_thoughts
         completion = self.open_ai.chat.completions.create(
             model="gpt-4o",
             response_format={"type": "json_object"},
@@ -173,14 +165,7 @@ class OpenAIChat(object):
         return results["results"]
 
     def suggest_thoughts(self):
-        thoughts = [
-            {
-                "id": thought["id"],
-                "summary": thought["summary"],
-                "description": thought["description"],
-            }
-            for thought in st.session_state.thoughts
-        ]
+        thoughts = st.session_state.demo_thoughts
         completion = self.open_ai.chat.completions.create(
             model="gpt-4o",
             response_format={"type": "json_object"},
@@ -206,10 +191,6 @@ class OpenAIChat(object):
 
     @st.experimental_dialog("Save as Thought", width="large")
     def save_thought_dialog(self, chat_message):
-        supabase: SupabaseClient = st.session_state.supabase
-        # with st.expander("Message to Save"):
-        #     st.chat_message(chat_message["role"]).markdown(chat_message["content"])
-        # st.divider()
         with st.form(key="thought_form"):
             new_type = st.selectbox(
                 "Type",
@@ -220,7 +201,6 @@ class OpenAIChat(object):
             summary = st.text_input("Thought one-liner", max_chars=SUMMARY_MAX)
             description = st.text_area(
                 "Describe your thought:",
-                # max_chars=DESCRIPTION_MAX,
                 value=chat_message["content"],
             )
             submit_button = st.form_submit_button(label="Submit")
@@ -228,51 +208,33 @@ class OpenAIChat(object):
         # Add the new thought to the session state
         if submit_button:
             if summary and description:
-                if thought := supabase.add_thought(summary, description, new_type):
-                    st.session_state.thoughts = [thought] + st.session_state.thoughts
-                    st.session_state.thought_map[thought["id"]] = thought
-                    st.success("Your thought has been added!")
-                    if self.thought:
-                        if supabase.connect_thought(self.thought["id"], thought["id"]):
-                            st.success("Connected thought to parent thought.")
-                        else:
-                            st.error("Error. Thought could not be connected.")
-                    st.rerun()
-                else:
-                    st.error("Error. Thought could not be added.")
+                thought = {
+                    "type": new_type,
+                    "summary": summary,
+                    "description": description,
+                    "id": len(st.session_state.demo_thoughts),
+                    "created_at": datetime.now().isoformat(),
+                }
+                st.session_state.demo_thoughts = [
+                    thought
+                ] + st.session_state.demo_thoughts
+                st.session_state.demo_thought_map[thought["id"]] = thought
+                thought["connections"] = []
+                st.success("Your thought has been added!")
+                st.rerun()
             else:
                 st.error("Please make sure all fields are filled out.")
-
-    def save_thought_with_ai(self, chat_message):
-        supabase = st.session_state.supabase
-        completion = self.open_ai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Give me a 100 character length title of this thought designed to give as much information as possible as a title on a sticky note. The user should understand exactly what the text is about from reading only the title. It must be 100 characters or less. Don't add quotation marks.",
-                },
-                {
-                    "role": "user",
-                    "content": chat_message["content"],
-                },
-            ],
-        )
-
-        summary = completion.choices[0].message.content
-        if thought := supabase.add_thought(
-            summary, chat_message["content"], "undefined"
-        ):
-            st.session_state.thoughts = [thought] + st.session_state.thoughts
-            st.session_state.thought_map[thought["id"]] = thought
-            st.success("Your thought has been added!")
-        else:
-            st.error("Error. Thought could not be added.")
 
     def chat_page(self):
         if not self.gpt_conversation or not self.display_conversation:
             st.error("Chat not initialized.")
             return
+
+        if st.button(
+            "Close Chat", key="close_chat", use_container_width=True, type="primary"
+        ):
+            st.session_state.chat_open = False
+            st.rerun()
 
         for i, message in enumerate(self.display_conversation):
             l, r = st.columns((10, 1))

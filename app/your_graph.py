@@ -1,6 +1,6 @@
 import streamlit as st
 
-from thought_graph import ThoughtGraph
+from app.thought_graph import ThoughtGraph
 
 
 def graph_page():

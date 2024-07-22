@@ -1,4 +1,4 @@
-# thoughtte
+# String Theories
 
 ## License
 

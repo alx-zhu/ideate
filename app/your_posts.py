@@ -1,6 +1,6 @@
 import streamlit as st
-from constants import THOUGHTS_TABLE
-from supabase_client import SupabaseClient
+from app.constants import THOUGHTS_TABLE
+from app.supabase_client import SupabaseClient
 
 
 def posts_page():
