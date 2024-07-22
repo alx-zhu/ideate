@@ -2,7 +2,7 @@ import streamlit as st
 from app.about import about_page
 from app.constants import ABOUT_PAGE
 from app.home import home_page
-from app.authentication import authentication_page
+from app.authentication_page import authentication_page
 from app.supabase_client import SupabaseClient
 
 

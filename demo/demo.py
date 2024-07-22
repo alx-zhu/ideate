@@ -14,6 +14,7 @@ from app.supabase_client import SupabaseClient
 from demo.demo_chat import DemoChat
 from demo.demo_components import demo_thought_component
 from demo.demo_search import demo_search_page
+from app.authentication_components import sign_up_component
 
 
 @st.experimental_dialog("Add New Thought", width="large")
@@ -158,3 +159,4 @@ def demo_page():
 
         with st.container(border=True):
             st.markdown("##### 4. Sign up to save your thoughts.")
+            sign_up_component(key="demo")
