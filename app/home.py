@@ -52,10 +52,10 @@ def home_page():
             type="primary",
         )
         if st.button("Logout", key="logout_button", use_container_width=True):
-            st.session_state.user_id = None
-            st.session_state.your_posts = None
-            st.session_state.thoughts = None
-            st.session_state.user_info = None
+            del st.session_state.user_id
+            del st.session_state.your_posts
+            del st.session_state.thoughts
+            del st.session_state.user_info
             st.rerun()
 
 
